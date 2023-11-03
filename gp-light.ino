@@ -317,6 +317,10 @@ void setup()
 {
   SERIAL.begin(115200); // USB serial setup
 
+  //Setup Voltage detector
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+
   // Servo connection
   myservo.attach(SERVO_PIN);
   myservo.write(int_position);
@@ -329,19 +333,16 @@ void setup()
   // measure the sensors reading at zero light intensity  
   int_adc0_c=245;   // Left sensor at zero light intensity
   int_adc1_c=475;   // Right sensor at zero light intensity
-
-  // calculate the slope of light intensity to ADC reading equations  
-  int_adc0_m=(int_adc0-int_adc0_c)/100;
-  int_adc1_m=(int_adc1-int_adc1_c)/100;
+//
+//  // calculate the slope of light intensity to ADC reading equations  
+//  int_adc0_m=(int_adc0-int_adc0_c)/100;
+//  int_adc1_m=(int_adc1-int_adc1_c)/100;
 
   // Initialize the parameters of the car
   SERIAL.println("Start");
   STOP(); 
   servo_pan.attach(48);
   servo_tilt.attach(47);
-
-  //Setup Voltage detector
-  pinMode(A0, INPUT);
 
   //Setup the power sensor
   // Default INA226 address is 0x40
@@ -365,21 +366,28 @@ void setup()
 
 void loop(){
   // run the code in every 20ms
-  if (millis() > (time + 15)) {
-    voltCount++;
-    time = millis();
-
-    //constrain the servo movement
-    pan = constrain(pan, servo_min, servo_max);
-    tilt = constrain(tilt, servo_min, servo_max);
-    
-    //send signal to servo
-    servo_pan.write(pan);
-    servo_tilt.write(tilt);
-  }if (voltCount>=5){
-    voltCount=0;
-    sendVolt();
-  }
+//  if (millis() > (time + 15)) {
+//    voltCount++;
+//    time = millis();
+//
+//    //constrain the servo movement
+//    pan = constrain(pan, servo_min, servo_max);
+//    tilt = constrain(tilt, servo_min, servo_max);
+//    
+//    //send signal to servo
+//    servo_pan.write(pan);
+//    servo_tilt.write(tilt);
+//  }if (voltCount>=5){
+//    voltCount=0;
+//    sendVolt();
+//  }
+  // direction control
+  int_left=(analogRead(A0)-int_adc0_c);
+  int_right=(analogRead(A1)-int_adc1_c); 
+  Serial.println("int_left: " + String(int_left) + " analogRead(A0): " + String(analogRead(A0)) + " int_adc0_c: " + String(int_adc0_c) + " int_adc0_m: " + String(int_adc0_m));
+  Serial.println("int_right: " + String(int_right) + " analogRead(A1): " + String(analogRead(A1)) + " int_adc1_c: " + String(int_adc1_c) + " int_adc1_m: " + String(int_adc1_m));
+  Serial.println();
+  tracker();
 
   // Movement control
   if (ina.readBusPower() <= power) {
@@ -406,14 +414,6 @@ void loop(){
     display.display();
   }
 
-  // direction control
-  int_left=(analogRead(A0)-int_adc0_c)/int_adc0_m;
-  int_right=(analogRead(A1)-int_adc1_c)/int_adc1_m; 
-  Serial.println("int_left: " + String(int_left) + " analogRead(A0): " + String(analogRead(A0)) + " int_adc0_c: " + String(int_adc0_c) + " int_adc0_m: " + String(int_adc0_m));
-  Serial.println("int_right: " + String(int_right) + " analogRead(A1): " + String(analogRead(A1)) + " int_adc1_c: " + String(int_adc1_c) + " int_adc1_m: " + String(int_adc1_m));
-  Serial.println();
-  tracker();
-
-  // Print the power on LED
+  
 
 }
