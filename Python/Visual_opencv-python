@@ -1,0 +1,26 @@
+#imports the OpenCV library，NumPy library
+import cv2
+import numpy as np
+#从实时video读取红色块信息
+cap = cv2.VideoCapture(0) #only one camera so "0"
+
+def detect_red_colour(frame):
+  into_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+  lower_red = np.array([0, 0, 200], dtype = "uint8") # setting the red lower limit 
+  upper_red= np.array([0, 0, 255], dtype = "uint8")
+  mask = cv2.inRange(into_hsv, lower_red, upper_red)
+  red = cv2.bitwise_and(frame, frame, mask=mask)
+  cv2.imshow('Detection', frame)  # to display the frame output
+  cv2.imshow('The_red_object', red)  # to display the red object output
+
+if not cap.isOpened():
+  print("Cannot open camera")
+  exit()
+  
+while cap.isOpened():
+    ret, frame = cap.read()
+    detect_red_colour(frame)
+# Release the video capture object and close the windows
+cap.release()
+cv2.destroyAllWindows()
+  
