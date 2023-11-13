@@ -4,7 +4,16 @@ import time
 
 cap = cv2.VideoCapture(0)
 
+# Variables to track the previous center coordinates
+prev_center_x = None
+prev_center_y = None
+
+# Lists to store the movement history
+movement_history = []
+
 def detect_and_draw_largest_red_object(frame):
+    global prev_center_x, prev_center_y
+
     # Convert BGR to HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -38,9 +47,25 @@ def detect_and_draw_largest_red_object(frame):
 
         # Calculate the center of the rectangle
         center_x = x + w // 2
-        center_y = y + h // 2
+        center_y = frame.shape[0] - (y + h // 2)  # Invert y coordinate
 
         print("Center coordinates:", center_x, center_y)
+
+        # Print movement direction based on changes in coordinates
+        if prev_center_x is not None and prev_center_y is not None:
+            dx = center_x - prev_center_x
+            dy = center_y - prev_center_y
+
+            horizontal_movement = "left" if dx < 0 else "right"
+            vertical_movement = "up" if dy < 0 else "down"
+
+            movement = f"Movement: {horizontal_movement} {vertical_movement}"
+            movement_history.append(movement)
+            print(movement)
+
+        # Update previous center coordinates
+        prev_center_x = center_x
+        prev_center_y = center_y
 
     cv2.imshow('Largest Red Object Detection', frame)
 
@@ -61,3 +86,4 @@ while cap.isOpened():
 
 cap.release()
 cv2.destroyAllWindows()
+
