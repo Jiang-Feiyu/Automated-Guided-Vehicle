@@ -1,0 +1,22 @@
+sudo apt-get install bluetooth bluez blueman #树莓派上安装蓝牙模块和相关的驱动程序
+sudo systemctl start bluetooth #在树莓派上启动蓝牙服务
+sudo hcitool scan #需要在树莓派上搜索蓝牙设备
+sudo apt-get install python-serial
+
+#include <SoftwareSerial.h>
+
+SoftwareSerial bluetooth(2, 3); // RX, TX
+
+void setup() {
+  Serial.begin(9600);
+  bluetooth.begin(9600);
+}
+
+void loop() {
+  if (bluetooth.available()) {
+    Serial.write(bluetooth.read());
+  }
+  if (Serial.available()) {
+    bluetooth.write(Serial.read());
+  }
+}
