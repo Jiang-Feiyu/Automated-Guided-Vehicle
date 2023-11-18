@@ -21,7 +21,7 @@ def send_command(ser, command):
 
 def main():
     # 请替换成你的软串口端口和波特率
-    arduino_port = "/dev/tty.YourSoftwareSerialPort"  # 根据实际情况修改
+    arduino_port = "/dev/rfcomm0"  # 根据实际情况修改
     baud_rate = 9600  # 根据实际情况修改
 
     # 连接到Arduino
