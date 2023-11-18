@@ -20,25 +20,25 @@ def send_command(ser, command):
         print(f"发送指令失败：{e}")
 
 def main():
-    # 蓝牙串口虚拟文件
-    port = '/dev/rfcomm0'
-
-    # 设置蓝牙波特率
-    bluetooth_serial = serial.Serial(port, 9600)
-    
     # 请替换成你的软串口端口和波特率
+    arduino_port = "/dev/tty.YourSoftwareSerialPort"  # 根据实际情况修改
     baud_rate = 9600  # 根据实际情况修改
 
     # 连接到Arduino
-    arduino_serial = connect_arduino(port, baud_rate)
+    arduino_serial = connect_arduino(arduino_port, baud_rate)
 
     if arduino_serial is not None:
         try:
-            # 向Arduino发送指令
-            send_command(arduino_serial, "This is python")
+            while True:
+                # 向Arduino发送指令
+                send_command(arduino_serial, "This is python")
 
-            # 这里可以添加其他操作
+                # 可以添加其他操作或者休眠一段时间
+                time.sleep(1)  # 休眠1秒
 
+        except KeyboardInterrupt:
+            # 如果用户按下Ctrl+C，停止发送指令
+            pass
         finally:
             # 关闭串口连接
             arduino_serial.close()
