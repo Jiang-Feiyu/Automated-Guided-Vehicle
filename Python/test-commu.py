@@ -18,10 +18,10 @@ if arduino_port:
     ser = serial.Serial(arduino_port, 9600, timeout=1)
 
     # 向Arduino发送消息
-    ser.write("This is Python\n".encode('utf-8'))
+    ser.write("This is Python\r\n".encode('utf-8'))
 
     # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
-    time.sleep(2)
+    time.sleep(5)
 
     # 读取Arduino的回复
     response = ser.readline().decode('utf-8').strip()
