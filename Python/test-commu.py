@@ -1,4 +1,5 @@
 import serial
+import serial.tools.list_ports
 import time
 
 # 查找串口号
