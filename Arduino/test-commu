@@ -3,11 +3,28 @@ void setup() {
 }
 
 void loop() {
-  // 读取传感器数据或执行其他任务
-  int sensorValue = analogRead(A0);
+  // 等待从串口接收数据
+  if (Serial.available() > 0) {
+    // 读取接收到的数字
+    int receivedValue = Serial.parseInt();
 
-  // 将数据发送到串口
-  Serial.println(sensorValue);
-
-  delay(1000); // 延迟1秒
+    // 处理接收到的数字
+    switch (receivedValue) {
+      case 1:
+        // 执行与数字1相关的操作
+        break;
+      case 2:
+        // 执行与数字2相关的操作
+        break;
+      case 3:
+        // 执行与数字3相关的操作
+        break;
+      case 4:
+        // 执行与数字4相关的操作
+        break;
+      default:
+        // 处理其他情况
+        break;
+    }
+  }
 }
