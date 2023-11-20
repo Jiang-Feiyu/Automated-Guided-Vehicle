@@ -9,35 +9,35 @@ def find_arduino_port():
         return port
     return None
 
-
 # 查找Arduino串口号
 arduino_port = find_arduino_port()
 print("arduino_port:", arduino_port)
 
 if arduino_port:
-    # 设置串口参数
-    ser = serial.Serial(arduino_port, 9600, timeout=1)
-    print("Serial name:", ser.name)
-    print("Serial baudrate:", ser.baudrate)
-    print("Serial state:", ser.is_open)
+    try:
+        # 设置串口参数并打开串口
+        ser = serial.Serial(arduino_port, 9600, timeout=1)
+        print("Serial name:", ser.name)
+        print("Serial baudrate:", ser.baudrate)
+        print("Serial state:", ser.is_open)
 
-    while 1:
+        while 1:
+            # 向Arduino发送消息
+            ser.write("This is Python\r\n".encode('utf-8'))
 
-        res=ser.readline()
-        print(res)
-        
-        # 向Arduino发送消息
-        ser.write("This is Python\r\n".encode('utf-8'))
+            # 读取Arduino的回复
+            response = ser.readline().decode('utf-8').strip()
 
-        # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
-        time.sleep(5)
+            # 打印回复消息
+            print("Arduino says:", response)
 
-        # 读取Arduino的回复
-        response = ser.readline().decode('utf-8').strip()
+            # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
+            time.sleep(5)
 
-        # 打印回复消息
-        print("Arduino says:", response)
+    except serial.SerialException as e:
+        print(f"Serial error: {e}")
 
+    finally:
         # 关闭串口连接
         ser.close()
 else:
