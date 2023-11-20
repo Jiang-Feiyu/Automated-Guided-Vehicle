@@ -5,12 +5,19 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() > 0) {
-    // 如果串口有可用数据
-    String input = Serial.readStringUntil('\n');  // 读取一行数据，以换行符为结束标志
-    if (input == "This is Python") {
-      // 如果收到的数据是"This is Python"
-      Serial.println("Received");  // 向Python发送确认消息
+  waitForPythonMessage();
+}
+
+void waitForPythonMessage() {
+  while (true) {
+    if (Serial.available() > 0) {
+      // 如果串口有可用数据
+      String input = Serial.readStringUntil('\n');  // 读取一行数据，以换行符为结束标志
+      if (input == "This is Python") {
+        // 如果收到的数据是"This is Python"
+        Serial.println("Received");  // 向Python发送确认消息
+        break;  // 退出循环，等待下一次消息
+      }
     }
   }
 }
