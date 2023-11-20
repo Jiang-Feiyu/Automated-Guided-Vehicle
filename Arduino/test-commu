@@ -7,12 +7,13 @@ void loop() {
 }
 
 void waitForPythonMessage() {
-  while (true) {
-    if (Serial.available() > 0) {
-      // 如果串口有可用数据
-      String input = Serial.readStringUntil('\n');  // 读取一行数据，以换行符为结束标志
-      Serial.println("received");  // 无论接收到什么内容，都返回 "received"
-      break;  // 退出循环，等待下一次消息
-    }
+  String str="";
+  while (Serial.available()) {
+      char ch=Serial.read();
+      str+=ch;
+      delay(10);
+  }
+  if (str.length()>0){
+    Serial.println(str);
   }
 }
