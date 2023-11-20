@@ -4,11 +4,11 @@ import time
 
 # 查找串口号
 def find_arduino_port():
-    ports = serial.tools.list_ports.comports()
-    for port, desc, hwid in sorted(ports):
-        if "1a86:7523" in hwid:  # 检查设备的硬件ID是否匹配
-            return port
+    ports = serial.tools.list_ports.grep("1a86:7523")
+    for port, desc, hwid in ports:
+        return port
     return None
+
 
 # 查找Arduino串口号
 arduino_port = find_arduino_port()
