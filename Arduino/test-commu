@@ -1,0 +1,13 @@
+void setup() {
+  Serial.begin(9600); // 设置串口波特率为9600
+}
+
+void loop() {
+  // 读取传感器数据或执行其他任务
+  int sensorValue = analogRead(A0);
+
+  // 将数据发送到串口
+  Serial.println(sensorValue);
+
+  delay(1000); // 延迟1秒
+}
