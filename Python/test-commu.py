@@ -23,13 +23,14 @@ if arduino_port:
 
         while 1:
             # 向Arduino发送消息
+            print("msg sent")
             ser.write("This is Python\r\n".encode('utf-8'))
 
             # 读取Arduino的回复
             response = ser.readline().decode('utf-8').strip()
 
             # 打印回复消息
-            print("Arduino says:", response)
+            print("res:", response)
 
             # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
             time.sleep(5)
