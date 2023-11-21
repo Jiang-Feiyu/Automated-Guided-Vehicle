@@ -26,13 +26,14 @@ def send_msg(msg):
                 ser.write(msg.encode('utf-8'))
 
                 # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
-                time.sleep(2)
+                time.sleep(3)
 
                 # 读取Arduino的回复
                 res=ser.readline()
                 if (res):
                    # 打印回复消息
-                    print("res:", response)
+                    response_str = res.decode('utf-8')
+                    print("res:", response_str)
                     tag = 1
                 else:
                     print("no response yet")
@@ -44,5 +45,6 @@ def send_msg(msg):
     else:
         print("Arduino not found.")
 
-
-send_msg("("+str(1)+")")
+# msg send
+for i in range(0, 10):
+    send_msg("("+str(i)+")")
