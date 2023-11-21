@@ -1,5 +1,5 @@
 void setup() {
-  Serial.begin(9600);  // 初始化串口通信，波特率设置为9600
+  Serial.begin(9600);  // Initialize serial communication with a baud rate of 9600
 }
 
 void loop() {
@@ -7,13 +7,23 @@ void loop() {
 }
 
 void waitForPythonMessage() {
-  String str="";
+  String str = "";
   while (Serial.available()) {
-      char ch=Serial.read();
-      str+=ch;
-      delay(10);
+    char ch = Serial.read();
+    str += ch;
+    delay(10);
   }
-  if (str.length()>0){
-    Serial.println(str);
+  if (str.length() > 0) {
+    Serial.println("Received message from Python: " + str);
+
+    // Process the received message here if needed
+
+    // Send a response back to Python
+    sendResponseToPython("Message received!");
   }
+}
+
+void sendResponseToPython(String response) {
+  Serial.println(response);
+  delay(10);
 }
