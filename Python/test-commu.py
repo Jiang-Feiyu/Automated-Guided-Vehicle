@@ -29,11 +29,13 @@ def send_msg(msg):
                 time.sleep(2)
 
                 # 读取Arduino的回复
-                response = ser.readline().decode('utf-8').strip()
-
-                # 打印回复消息
-                print("res:", response)
-                tag = 1
+                res=ser.readline()
+                if (res):
+                   # 打印回复消息
+                    print("res:", response)
+                    tag = 1
+                else:
+                    print("no response yet")
         except serial.SerialException as e:
             print(f"Serial error: {e}")
         finally:
@@ -42,5 +44,5 @@ def send_msg(msg):
     else:
         print("Arduino not found.")
 
-for i in range(0, 5):
-    send_msg(str(i)+":move")
+
+send_msg("("+str(1)+")")
