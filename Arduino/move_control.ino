@@ -1,4 +1,3 @@
-```
 #define MOTORA_PWM_PIN 3    // 电机A的PWM引脚
 #define MOTORA_DIR_PIN1 22
 #define MOTORA_DIR_PIN2 23   // 电机A的方向引脚
@@ -207,5 +206,3 @@ void MOTORD_STOP(uint8_t pwm) {
   digitalWrite(MOTORD_DIR_PIN2, LOW);
   analogWrite(MOTORD_PWM_PIN, pwm);
 }
-```
-解释并记录这个代码
