@@ -43,4 +43,4 @@ def send_msg(msg):
         print("Arduino not found.")
 
 for i in range(0, 5):
-    send_msg(str(i))
+    send_msg(str(i)+":move")
