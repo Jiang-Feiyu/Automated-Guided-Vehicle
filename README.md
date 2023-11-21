@@ -27,3 +27,6 @@ Here are some steps for reference: (suppose you already have `conda`)
     ```
     (py36tqrcode) ➜  desktop git:(main) ✗ /Users/wodepingguo/opt/anaconda3/envs/py36tqrcode/bin/python QRcode.py
     ```
+## Communication
+1. Python  msg send function: `send_msg("("+str(i)+")")`, plz be aware that the string must be included in the bracket.
+2. Arduino may process the instruction in `processCommand(String commond)` function.
