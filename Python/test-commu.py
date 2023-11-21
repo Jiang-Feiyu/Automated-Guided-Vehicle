@@ -18,12 +18,10 @@ def send_msg(msg):
         try:
             # 设置串口参数并打开串口
             ser = serial.Serial(arduino_port, 9600, timeout=1)
-            print("Serial name:", ser.name)
-            print("Serial baudrate:", ser.baudrate)
-            print("Serial state:", ser.is_open)
+            print("ser.is_open")
 
             # 向Arduino发送消息
-            print("msg sent")
+            print("msg sent", msg)
             ser.write(msg.encode('utf-8'))
 
             # 读取Arduino的回复
@@ -45,4 +43,4 @@ def send_msg(msg):
         print("Arduino not found.")
 
 for i in range(0, 5):
-    send_msg(i)
+    send_msg(str(i))
