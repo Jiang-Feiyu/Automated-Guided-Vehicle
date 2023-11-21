@@ -119,15 +119,7 @@ void ADVANCE()
   MOTORD_BACKOFF(Motor_PWM); //    ↓C-----D↓
 }
 
-void LEFT_1()
-{
-  MOTORA_STOP(Motor_PWM);   //    =A-----B↑
-  MOTORB_FORWARD(Motor_PWM);//     |   ↖ |
-  MOTORC_BACKOFF(Motor_PWM);//     | ↖   |
-  MOTORD_STOP(Motor_PWM);   //    ↑C-----D=
-}
-
-void RIGHT_2()
+void RIGHT()
 {
   MOTORA_FORWARD(Motor_PWM); //    ↓A-----B↑
   MOTORB_FORWARD(Motor_PWM); //     |  ←  |
@@ -135,51 +127,11 @@ void RIGHT_2()
   MOTORD_BACKOFF(Motor_PWM); //    ↑C-----D↓
 }
 
-void LEFT_3()
-{
-  MOTORA_FORWARD(Motor_PWM); //    ↓A-----B=
-  MOTORB_STOP(Motor_PWM);    //     | ↙   |
-  MOTORC_STOP(Motor_PWM);    //     |   ↙ |
-  MOTORD_BACKOFF(Motor_PWM); //    =C-----D↓
-}
-
-void RIGHT_1()
-{
-  MOTORA_BACKOFF(Motor_PWM); //    ↑A-----B=
-  MOTORB_STOP(Motor_PWM);    //     | ↗   |
-  MOTORC_STOP(Motor_PWM);    //     |   ↗ |
-  MOTORD_FORWARD(Motor_PWM); //    =C-----D↑
-}
-
-void LEFT_2()
+void LEFT()
 {
   MOTORA_BACKOFF(Motor_PWM); //    ↑A-----B↓
   MOTORB_BACKOFF(Motor_PWM); //     |  →  |
   MOTORC_FORWARD(Motor_PWM); //     |  →  |
-  MOTORD_FORWARD(Motor_PWM); //    ↓C-----D↑
-}
-
-void RIGHT_3()
-{
-  MOTORA_STOP(Motor_PWM);    //    =A-----B↓
-  MOTORB_BACKOFF(Motor_PWM); //     |   ↘ |
-  MOTORC_FORWARD(Motor_PWM); //     | ↘   |
-  MOTORD_STOP(Motor_PWM);    //    ↓C-----D=
-}
-
-void rotate_1()  //tate_1(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
-{
-  MOTORA_BACKOFF(Motor_PWM); //    ↑A-----B↓
-  MOTORB_BACKOFF(Motor_PWM); //     | ↗ ↘ |
-  MOTORC_BACKOFF(Motor_PWM); //     | ↖ ↙ |
-  MOTORD_BACKOFF(Motor_PWM); //    ↑C-----D↓
-}
-
-void rotate_2()  // rotate_2(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
-{
-  MOTORA_FORWARD(Motor_PWM); //    ↓A-----B↑
-  MOTORB_FORWARD(Motor_PWM); //     | ↙ ↖ |
-  MOTORC_FORWARD(Motor_PWM); //     | ↘ ↗ |
   MOTORD_FORWARD(Motor_PWM); //    ↓C-----D↑
 }
 
@@ -374,7 +326,7 @@ void processCommand(String command) {
   } else if (command == "(1)") {
     ADVANCE();
   } else if (command == "(2)") {
-    BACK();
+    BACK(500, 500, 500, 500);
   } else if (command == "(3)") {
     LEFT();
   } else if (command == "(4)") {
