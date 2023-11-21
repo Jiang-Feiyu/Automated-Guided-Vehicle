@@ -10,17 +10,17 @@ def find_arduino_port():
     return None
 
 def send_msg(msg):
-	# 查找Arduino串口号
-	arduino_port = find_arduino_port()
-	print("arduino_port:", arduino_port)
+    # 查找Arduino串口号
+    arduino_port = find_arduino_port()
+    print("arduino_port:", arduino_port)
 
-	if arduino_port:
-		try:
-			# 设置串口参数并打开串口
-			ser = serial.Serial(arduino_port, 9600, timeout=1)
-			print("Serial name:", ser.name)
-			print("Serial baudrate:", ser.baudrate)
-			print("Serial state:", ser.is_open)
+    if arduino_port:
+        try:
+            # 设置串口参数并打开串口
+            ser = serial.Serial(arduino_port, 9600, timeout=1)
+            print("Serial name:", ser.name)
+            print("Serial baudrate:", ser.baudrate)
+            print("Serial state:", ser.is_open)
 
             # 向Arduino发送消息
             print("msg sent")
@@ -35,14 +35,14 @@ def send_msg(msg):
             # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
             time.sleep(2)
 
-		except serial.SerialException as e:
-			print(f"Serial error: {e}")
+        except serial.SerialException as e:
+            print(f"Serial error: {e}")
 
-		finally:
-			# 关闭串口连接
-			ser.close()
-	else:
-		print("Arduino not found.")
-		
-for i in range(0,5):
-	send_msg(i)
+        finally:
+            # 关闭串口连接
+            ser.close()
+    else:
+        print("Arduino not found.")
+
+for i in range(0, 5):
+    send_msg(i)
