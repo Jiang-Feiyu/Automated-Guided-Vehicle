@@ -162,30 +162,6 @@ void sendVolt(){
     oldV=newV;
 }
 
-// This function is to detect the direction of the car
-void tracker()
-{
- // If left sensor is brighter than right sensor, decrease servo angle and turn LEFT
-  if (int_left>(int_right+TOL))
-  {
-      Serial.println("left1");
-      LEFT_1();
-  }
-
- // if right sensor is brighter than left sensor, increase servo angle and turn RIGHT
-  if (int_left<(int_right-TOL))
-  {
-      Serial.println("right1");
-      RIGHT_1();
-  }
-
-  // if right sensor is nearly the same, stop the car
-  if ((int_left>(int_right-TOL))&& ((int_left<(int_right+TOL))))
-  {
-      Serial.println("stop");
-      STOP();
-  }
-}
 
 // This is the function for printing the power
 void checkConfig()
