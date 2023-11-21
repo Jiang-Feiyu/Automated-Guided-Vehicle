@@ -24,7 +24,16 @@ if arduino_port:
         while 1:
             # 向Arduino发送消息
             print("msg sent")
-            ser.write("This is Python\r\n".encode('utf-8'))
+            ser.write("1".encode('utf-8'))
+            time.sleep(1)
+            ser.write("2".encode('utf-8'))
+            time.sleep(1)
+            ser.write("3".encode('utf-8'))
+            time.sleep(1)
+            ser.write("4".encode('utf-8'))
+            time.sleep(1)
+            ser.write("0".encode('utf-8'))
+            time.sleep(1)
 
             # 读取Arduino的回复
             response = ser.readline().decode('utf-8').strip()
