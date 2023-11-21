@@ -3,40 +3,32 @@ void setup() {
 }
 
 void loop() {
+  // sendResponseToPython("aaa");
   waitForPythonMessage();
-}
-
-void waitForPythonMessage() {
-  String str = "";
-  while (Serial.available()) {
-    char ch = Serial.read();
-    str += ch;
-    delay(10);
-  }
-  if (str.length() > 0) {
-    // 解析接收到的消息
-    int colonIndex = str.indexOf(':');
-    if (colonIndex != -1) {
-      String command = str.substring(colonIndex + 1); // 提取冒号后的命令部分
-      Serial.println("Received command from Python: " + command);
-
-      // 处理接收到的命令
-      processCommand(command);
-
-      // 发送响应回到Python
-      sendResponseToPython("Message received!");
-    }
-  }
-}
-
-void processCommand(String command) {
-  // 在这里处理接收到的命令，可以根据需要执行相应的操作
-  // 例如，根据命令移动机器人或执行其他任务
-  // 这里只是一个示例，你需要根据你的具体需求进行修改
-  Serial.println("Processing command: " + command);
 }
 
 void sendResponseToPython(String response) {
   Serial.println(response);
   delay(10);
+}
+
+void waitForPythonMessage() {
+  String str = "";
+  while (Serial.available()) {
+    // sendResponseToPython("aaa");
+    char ch = Serial.read();
+    str += ch;
+    delay(10);
+  }
+  if (str.length() > 0) {
+      // 处理接收到的命令
+      processCommand(str);
+      // 发送响应回到Python
+      sendResponseToPython("Message received!");
+    }
+ }
+
+void processCommand(String command) {
+  // 在这里处理接收到的命令，可以根据需要执行相应的操作
+  Serial.println("Processing command: " + command);
 }
