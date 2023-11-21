@@ -1,406 +1,211 @@
-#include <Arduino.h>
-#include <SPI.h>
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+```
+#define MOTORA_PWM_PIN 3    // 电机A的PWM引脚
+#define MOTORA_DIR_PIN1 22
+#define MOTORA_DIR_PIN2 23   // 电机A的方向引脚
+#define MOTORB_PWM_PIN 4    // 电机B的PWM引脚
+#define MOTORB_DIR_PIN1 24
+#define MOTORB_DIR_PIN2 25   // 电机B的方向引脚
+#define MOTORC_PWM_PIN 5    // 电机C的PWM引脚
+#define MOTORC_DIR_PIN1 26
+#define MOTORC_DIR_PIN2 27   // 电机C的方向引脚
+#define MOTORD_PWM_PIN 6    // 电机D的PWM引脚
+#define MOTORD_DIR_PIN1 28   // 电机D的方向引脚
+#define MOTORD_DIR_PIN2 29   // 电机D的方向引脚
 
-// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET     28 //4 // Reset pin # (or -1 if sharing Arduino reset pin)
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-int oldV=1, newV=0;
-#include <SoftwareSerial.h>
-//UNO: (2, 3)
-//SoftwareSerial mySerial(4, 6); // RX, TX
-int pan = 90;
-int tilt = 120;
-int window_size = 0;
-int BT_alive_cnt = 0;
-int voltCount = 0;
-#include <Servo.h>
-Servo servo_pan;
-Servo servo_tilt;
-int servo_min = 20;
-int servo_max = 160;
+// 定义电机PWM值
+#define Motor_PWM 255
 
-unsigned long time;
+void setup() {
+  // 初始化电机引脚
+  pinMode(MOTORA_PWM_PIN, OUTPUT);
+  pinMode(MOTORA_DIR_PIN1, OUTPUT);
+  pinMode(MOTORA_DIR_PIN2, OUTPUT);
+  pinMode(MOTORB_PWM_PIN, OUTPUT);
+  pinMode(MOTORB_DIR_PIN1, OUTPUT);
+  pinMode(MOTORB_DIR_PIN2, OUTPUT);
+  pinMode(MOTORC_PWM_PIN, OUTPUT);
+  pinMode(MOTORC_DIR_PIN1, OUTPUT);
+  pinMode(MOTORC_DIR_PIN2, OUTPUT);
+  pinMode(MOTORD_PWM_PIN, OUTPUT);
+  pinMode(MOTORD_DIR_PIN1, OUTPUT);
+  pinMode(MOTORD_DIR_PIN2, OUTPUT);
 
-//FaBoPWM faboPWM;
-int pos = 0;
-int MAX_VALUE = 2000;
-int MIN_VALUE = 300;
-
-// Define motor pins
-#define PWMA 12    //Motor A PWM
-#define DIRA1 34
-#define DIRA2 35  //Motor A Direction
-#define PWMB 8    //Motor B PWM
-#define DIRB1 37
-#define DIRB2 36  //Motor B Direction
-#define PWMC 9   //Motor C PWM
-#define DIRC1 43
-#define DIRC2 42  //Motor C Direction
-#define PWMD 5    //Motor D PWM
-#define DIRD1 A4  //26  
-#define DIRD2 A5  //27  //Motor D Direction
-
-#define MOTORA_FORWARD(pwm)    do{digitalWrite(DIRA1,LOW); digitalWrite(DIRA2,HIGH);analogWrite(PWMA,pwm);}while(0)
-#define MOTORA_STOP(x)         do{digitalWrite(DIRA1,LOW); digitalWrite(DIRA2,LOW); analogWrite(PWMA,0);}while(0)
-#define MOTORA_BACKOFF(pwm)    do{digitalWrite(DIRA1,HIGH);digitalWrite(DIRA2,LOW); analogWrite(PWMA,pwm);}while(0)
-
-#define MOTORB_FORWARD(pwm)    do{digitalWrite(DIRB1,LOW); digitalWrite(DIRB2,HIGH);analogWrite(PWMB,pwm);}while(0)
-#define MOTORB_STOP(x)         do{digitalWrite(DIRB1,LOW); digitalWrite(DIRB2,LOW); analogWrite(PWMB,0);}while(0)
-#define MOTORB_BACKOFF(pwm)    do{digitalWrite(DIRB1,HIGH);digitalWrite(DIRB2,LOW); analogWrite(PWMB,pwm);}while(0)
-
-#define MOTORC_FORWARD(pwm)    do{digitalWrite(DIRC1,LOW); digitalWrite(DIRC2,HIGH);analogWrite(PWMC,pwm);}while(0)
-#define MOTORC_STOP(x)         do{digitalWrite(DIRC1,LOW); digitalWrite(DIRC2,LOW); analogWrite(PWMC,0);}while(0)
-#define MOTORC_BACKOFF(pwm)    do{digitalWrite(DIRC1,HIGH);digitalWrite(DIRC2,LOW); analogWrite(PWMC,pwm);}while(0)
-
-#define MOTORD_FORWARD(pwm)    do{digitalWrite(DIRD1,LOW); digitalWrite(DIRD2,HIGH);analogWrite(PWMD,pwm);}while(0)
-#define MOTORD_STOP(x)         do{digitalWrite(DIRD1,LOW); digitalWrite(DIRD2,LOW); analogWrite(PWMD,0);}while(0)
-#define MOTORD_BACKOFF(pwm)    do{digitalWrite(DIRD1,HIGH);digitalWrite(DIRD2,LOW); analogWrite(PWMD,pwm);}while(0)
-
-#define SERIAL  Serial
-#define BTSERIAL Serial3
-
-#define LOG_DEBUG
-
-#ifdef LOG_DEBUG
-  #define M_LOG SERIAL.print
-#else
-  #define M_LOG BTSERIAL.println
-#endif
-
-//PWM Definition
-#define MAX_PWM   2000
-#define MIN_PWM   300
-
-int Motor_PWM = 1900;
-
-
-//    ↑A-----B↑
-//     |  ↑  |
-//     |  |  |
-//    ↑C-----D↑
-void BACK(uint8_t pwm_A, uint8_t pwm_B, uint8_t pwm_C, uint8_t pwm_D)
-{
-  MOTORA_BACKOFF(Motor_PWM); 
-  MOTORB_FORWARD(Motor_PWM);
-  MOTORC_BACKOFF(Motor_PWM); 
-  MOTORD_FORWARD(Motor_PWM);
+  Serial.begin(9600);  // 初始化串口通信，波特率设置为9600
 }
 
-//    ↓A-----B↓
-//     |  |  |
-//     |  ↓  |
-//    ↓C-----D↓
-void ADVANCE()
-{
-  MOTORA_FORWARD(Motor_PWM); 
+void loop() {
+  // sendResponseToPython("aaa");
+  waitForPythonMessage();
+}
+
+void sendResponseToPython(String response) {
+  Serial.println(response);
+  delay(10);
+}
+
+void waitForPythonMessage() {
+  String str = "";
+  while (Serial.available()) {
+    // sendResponseToPython("aaa");
+    char ch = Serial.read();
+    str += ch;
+    delay(10);
+  }
+  if (str.length() > 0) {
+      // 处理接收到的命令
+      processCommand(str);
+      // 发送响应回到Python
+      sendResponseToPython("Message received!");
+    }
+ }
+
+void processCommand(String command) {
+  // 在这里处理接收到的命令，可以根据需要执行相应的操作
+  switch (command) {
+    case "0":  // 静止
+      STOP();
+      break;
+    case "1":  // 前进
+      ADVANCE();
+      break;
+    case "2":  // 后退
+      BACK();
+      break;
+    case "3":  // 左移
+      LEFT();
+      break;
+    case "4":  // 右移
+      RIGHT();
+      break;
+    default:
+      break;
+  }
+  Serial.println("Processing command: " + command);
+}
+
+
+// 后退
+void BACK() {
+  MOTORA_BACKOFF(Motor_PWM);
   MOTORB_BACKOFF(Motor_PWM);
-  MOTORC_FORWARD(Motor_PWM); 
-  MOTORD_BACKOFF(Motor_PWM);
-}
-//    =A-----B↑
-//     |   ↖ |
-//     | ↖   |
-//    ↑C-----D=
-void LEFT_1()
-{
-  MOTORA_STOP(Motor_PWM); 
-  MOTORB_FORWARD(Motor_PWM);
-  MOTORC_BACKOFF(Motor_PWM); 
-  MOTORD_STOP(Motor_PWM);
-}
-
-//    ↓A-----B↑
-//     |  ←  |
-//     |  ←  |
-//    ↑C-----D↓
-void RIGHT_2()
-{
-  MOTORA_FORWARD(Motor_PWM); 
-  MOTORB_FORWARD(Motor_PWM);
-  MOTORC_BACKOFF(Motor_PWM); 
-  MOTORD_BACKOFF(Motor_PWM);
-}
-//    ↓A-----B=
-//     | ↙   |
-//     |   ↙ |
-//    =C-----D↓
-void LEFT_3()
-{
-  MOTORA_FORWARD(Motor_PWM); 
-  MOTORB_STOP(Motor_PWM);
-  MOTORC_STOP(Motor_PWM); 
-  MOTORD_BACKOFF(Motor_PWM);
-}
-//    ↑A-----B=
-//     | ↗   |
-//     |   ↗ |
-//    =C-----D↑
-void RIGHT_1()
-{
-  MOTORA_BACKOFF(Motor_PWM); 
-  MOTORB_STOP(Motor_PWM);
-  MOTORC_STOP(Motor_PWM); 
-  MOTORD_FORWARD(Motor_PWM);
-}
-//    ↑A-----B↓
-//     |  →  |
-//     |  →  |
-//    ↓C-----D↑
-void LEFT_2()
-{
-  MOTORA_BACKOFF(Motor_PWM); 
-  MOTORB_BACKOFF(Motor_PWM);
-  MOTORC_FORWARD(Motor_PWM); 
-  MOTORD_FORWARD(Motor_PWM);
-}
-//    =A-----B↓
-//     |   ↘ |
-//     | ↘   |
-//    ↓C-----D=
-void RIGHT_3()
-{
-  MOTORA_STOP(Motor_PWM); 
-  MOTORB_BACKOFF(Motor_PWM);
-  MOTORC_FORWARD(Motor_PWM); 
-  MOTORD_STOP(Motor_PWM);
-}
-
-//    ↑A-----B↓
-//     | ↗ ↘ |
-//     | ↖ ↙ |
-//    ↑C-----D↓
-void rotate_1()  //tate_1(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
-{
-  MOTORA_BACKOFF(Motor_PWM); 
-  MOTORB_BACKOFF(Motor_PWM);
-  MOTORC_BACKOFF(Motor_PWM); 
+  MOTORC_BACKOFF(Motor_PWM);
   MOTORD_BACKOFF(Motor_PWM);
 }
 
-//    ↓A-----B↑
-//     | ↙ ↖ |
-//     | ↘ ↗ |
-//    ↓C-----D↑
-void rotate_2()  // rotate_2(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
-{
+// 前进
+void ADVANCE() {
   MOTORA_FORWARD(Motor_PWM);
   MOTORB_FORWARD(Motor_PWM);
   MOTORC_FORWARD(Motor_PWM);
   MOTORD_FORWARD(Motor_PWM);
 }
-//    =A-----B=
-//     |  =  |
-//     |  =  |
-//    =C-----D=
-void STOP()
-{
+
+// 左移
+void LEFT() {
+  MOTORA_STOP(Motor_PWM);
+  MOTORB_FORWARD(Motor_PWM);
+  MOTORC_BACKOFF(Motor_PWM);
+  MOTORD_STOP(Motor_PWM);
+}
+
+// 右移
+void RIGHT() {
+  MOTORA_FORWARD(Motor_PWM);
+  MOTORB_BACKOFF(Motor_PWM);
+  MOTORC_STOP(Motor_PWM);
+  MOTORD_FORWARD(Motor_PWM);
+}
+
+// 停止
+void STOP() {
   MOTORA_STOP(Motor_PWM);
   MOTORB_STOP(Motor_PWM);
   MOTORC_STOP(Motor_PWM);
   MOTORD_STOP(Motor_PWM);
 }
 
-void UART_Control()
-{
-  String myString;
-  char BT_Data = 0;
-  // USB data
-  /****
-   * Check if USB Serial data contain brackets
-   */
-
-  if (SERIAL.available())
-  {
-    char inputChar = SERIAL.read();
-    if (inputChar == '(') { // Start loop when left bracket detected
-      myString = "";
-      inputChar = SERIAL.read();
-      while (inputChar != ')')
-      {
-        myString = myString + inputChar;
-        inputChar = SERIAL.read();
-        if (!SERIAL.available()) {
-          break;
-        }// Break when bracket closed
-      }
-    }
-    int commaIndex = myString.indexOf(','); //Split data in bracket (a, b, c)
-    //Search for the next comma just after the first
-    int secondCommaIndex = myString.indexOf(',', commaIndex + 1);
-    String firstValue = myString.substring(0, commaIndex);
-    String secondValue = myString.substring(commaIndex + 1, secondCommaIndex);
-    String thirdValue = myString.substring(secondCommaIndex + 1); // To the end of the string
-    if ((firstValue.toInt() > servo_min and firstValue.toInt() < servo_max) and  //Convert them to numbers
-        (secondValue.toInt() > servo_min and secondValue.toInt() < servo_max)) {
-      pan = firstValue.toInt();
-      tilt = secondValue.toInt();
-      window_size = thirdValue.toInt();
-    }
-    SERIAL.flush();
-    Serial3.println(myString);
-    Serial3.println("Done");
-    if (myString != "") {
-      display.clearDisplay();
-      display.setCursor(0, 0);     // Start at top-left corner
-      display.println("Serial_Data = ");
-      display.println(myString);
-      display.display();
-    }
-  }
-
-
-
-
-
-
-
-  //BT Control
-  void UART_Control()
-{
-  String myString;
-  char UART_Data = 0;
-  // USB data
-  /****
-   * Check if USB Serial data contain brackets
-   */
-
-  if (SERIAL.available())
-  {
-    char inputChar = SERIAL.read();
-    if (inputChar == '(') { // Start loop when left bracket detected
-      myString = "";
-      inputChar = SERIAL.read();
-      while (inputChar != ')')
-      {
-        myString = myString + inputChar;
-        inputChar = SERIAL.read();
-        if (!SERIAL.available()) {
-          break;
-        }// Break when bracket closed
-      }
-    }
-    int commaIndex = myString.indexOf(','); //Split data in bracket (a, b, c)
-    //Search for the next comma just after the first
-    int secondCommaIndex = myString.indexOf(',', commaIndex + 1);
-    String firstValue = myString.substring(0, commaIndex);
-    String secondValue = myString.substring(commaIndex + 1, secondCommaIndex);
-    String thirdValue = myString.substring(secondCommaIndex + 1); // To the end of the string
-    if ((firstValue.toInt() > servo_min and firstValue.toInt() < servo_max) and  //Convert them to numbers
-        (secondValue.toInt() > servo_min and secondValue.toInt() < servo_max)) {
-      pan = firstValue.toInt();
-      tilt = secondValue.toInt();
-      window_size = thirdValue.toInt();
-    }
-    SERIAL.flush();
-    SERIAL.println(myString);
-    SERIAL.println("Done");
-    if (myString != "") {
-      display.clearDisplay();
-      display.setCursor(0, 0);     // Start at top-left corner
-      display.println("Serial_Data = ");
-      display.println(myString);
-      display.display();
-    }
-  }
-
-  // Wired Control
-  /*
-    Receive data from wired connection and translate it to motor movements
-  */
-  // Read data from wired connection
-  if (Serial.available())
-  {
-    UART_Data = Serial.read();
-    SERIAL.print(UART_Data);
-    Serial.flush();
-    display.clearDisplay();
-    display.setCursor(0, 0);     // Start at top-left corner
-    display.println("UART_Data = ");
-    display.println(UART_Data);
-    display.display();
-  }
-
-  switch (UART_Data)
-  {
-    case 'Z':  STOP();     M_LOG("Stop!\r\n");        break;
-    case 'O':  ADVANCE();  M_LOG("Run!\r\n");         break;
-    case 'T':  BACK(500, 500, 500, 500);     M_LOG("Run!\r\n");          break;
-    case 'H':  LEFT_1();   M_LOG("Left up!\r\n");     break;
-    case 'F':  RIGHT_1();  M_LOG("Right up!\r\n");    break;
-  }
+// 控制电机A后退
+void MOTORA_BACKOFF(uint8_t pwm) {
+  digitalWrite(MOTORA_DIR_PIN1, HIGH);
+  digitalWrite(MOTORA_DIR_PIN2, LOW);
+  analogWrite(MOTORA_PWM_PIN, pwm);
 }
 
-
-
-/*Voltage Readings transmitter
-Sends them via Serial3*/
-void sendVolt(){
-    newV = analogRead(A0);
-    if(newV!=oldV) {
-      if (!Serial3.available()) {
-        Serial3.println(newV);
-        Serial.println(newV);
-      }
-    }
-    oldV=newV;
+// 控制电机A前进
+void MOTORA_FORWARD(uint8_t pwm) {
+  digitalWrite(MOTORA_DIR_PIN1, LOW);
+  digitalWrite(MOTORA_DIR_PIN2, HIGH);
+  analogWrite(MOTORA_PWM_PIN, pwm);
 }
 
-
-
-
-
-
-
-//Where the program starts
-void setup()
-{
-  SERIAL.begin(115200); // USB serial setup
-  SERIAL.println("Start");
-  STOP(); // Stop the robot
-  Serial3.begin(9600); // BT serial setup
-  //Pan=PL4=>48, Tilt=PL5=>47
-   servo_pan.attach(48);
-   servo_tilt.attach(47);
-  //////////////////////////////////////////////
-  //OLED Setup//////////////////////////////////
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
-    Serial.println(F("SSD1306 allocation failed"));
-  }
-  display.clearDisplay();
-  display.setTextSize(2);      // Normal 1:1 pixel scale
-  display.setTextColor(SSD1306_WHITE); // Draw white text
-  display.cp437(true);         // Use full 256 char 'Code Page 437' font
-  display.setCursor(0, 0);     // Start at top-left corner
-  display.println("AI Robot");
-  display.display();
-
-
-  //Setup Voltage detector
-  pinMode(A0, INPUT);
+// 控制电机A停止
+void MOTORA_STOP(uint8_t pwm) {
+  digitalWrite(MOTORA_DIR_PIN1, LOW);
+  digitalWrite(MOTORA_DIR_PIN2, LOW);
+  analogWrite(MOTORA_PWM_PIN, pwm);
 }
 
-void loop()
-{
-  // run the code in every 20ms
-  if (millis() > (time + 15)) {
-    voltCount++;
-    time = millis();
-    UART_Control(); //get USB and BT serial data
-
-    //constrain the servo movement
-    pan = constrain(pan, servo_min, servo_max);
-    tilt = constrain(tilt, servo_min, servo_max);
-    
-    //send signal to servo
-    servo_pan.write(pan);
-    servo_tilt.write(tilt);
-  }if (voltCount>=5){
-    voltCount=0;
-    sendVolt();
-  }
+// 控制电机B后退
+void MOTORB_BACKOFF(uint8_t pwm) {
+  digitalWrite(MOTORB_DIR_PIN1, HIGH);
+  digitalWrite(MOTORB_DIR_PIN2, LOW);
+  analogWrite(MOTORB_PWM_PIN, pwm);
 }
+
+// 控制电机B前进
+void MOTORB_FORWARD(uint8_t pwm) {
+  digitalWrite(MOTORB_DIR_PIN1, LOW);
+  digitalWrite(MOTORB_DIR_PIN2, HIGH);
+  analogWrite(MOTORB_PWM_PIN, pwm);
+}
+
+// 控制电机B停止
+void MOTORB_STOP(uint8_t pwm) {
+  digitalWrite(MOTORB_DIR_PIN1, LOW);
+  digitalWrite(MOTORB_DIR_PIN2, LOW);
+  analogWrite(MOTORB_PWM_PIN, pwm);
+}
+
+// 控制电机C后退
+void MOTORC_BACKOFF(uint8_t pwm) {
+  digitalWrite(MOTORC_DIR_PIN1, HIGH);
+  digitalWrite(MOTORC_DIR_PIN2, LOW);
+  analogWrite(MOTORC_PWM_PIN, pwm);
+}
+
+// 控制电机C前进
+void MOTORC_FORWARD(uint8_t pwm) {
+  digitalWrite(MOTORC_DIR_PIN1, LOW);
+  digitalWrite(MOTORC_DIR_PIN2, HIGH);
+  analogWrite(MOTORC_PWM_PIN, pwm);
+}
+
+// 控制电机C停止
+void MOTORC_STOP(uint8_t pwm) {
+  digitalWrite(MOTORC_DIR_PIN1, LOW);
+  digitalWrite(MOTORC_DIR_PIN2, LOW);
+  analogWrite(MOTORC_PWM_PIN, pwm);
+}
+
+// 控制电机D后退
+void MOTORD_BACKOFF(uint8_t pwm) {
+  digitalWrite(MOTORD_DIR_PIN1, HIGH);
+  digitalWrite(MOTORD_DIR_PIN2, LOW);
+  analogWrite(MOTORD_PWM_PIN, pwm);
+}
+
+// 控制电机D前进
+void MOTORD_FORWARD(uint8_t pwm) {
+  digitalWrite(MOTORD_DIR_PIN1, LOW);
+  digitalWrite(MOTORD_DIR_PIN2, HIGH);
+  analogWrite(MOTORD_PWM_PIN, pwm);
+}
+
+// 控制电机D停止
+void MOTORD_STOP(uint8_t pwm) {
+  digitalWrite(MOTORD_DIR_PIN1, LOW);
+  digitalWrite(MOTORD_DIR_PIN2, LOW);
+  analogWrite(MOTORD_PWM_PIN, pwm);
+}
+```
+解释并记录这个代码
