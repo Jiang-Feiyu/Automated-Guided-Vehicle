@@ -44,3 +44,4 @@ def send_msg(msg):
 
 for i in range(0, 5):
     send_msg(str(i))
+    time.sleep(1)
