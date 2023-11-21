@@ -1,35 +1,134 @@
-#define MOTORA_PWM_PIN 3    // 电机A的PWM引脚
-#define MOTORA_DIR_PIN1 22
-#define MOTORA_DIR_PIN2 23   // 电机A的方向引脚
-#define MOTORB_PWM_PIN 4    // 电机B的PWM引脚
-#define MOTORB_DIR_PIN1 24
-#define MOTORB_DIR_PIN2 25   // 电机B的方向引脚
-#define MOTORC_PWM_PIN 5    // 电机C的PWM引脚
-#define MOTORC_DIR_PIN1 26
-#define MOTORC_DIR_PIN2 27   // 电机C的方向引脚
-#define MOTORD_PWM_PIN 6    // 电机D的PWM引脚
-#define MOTORD_DIR_PIN1 28   // 电机D的方向引脚
-#define MOTORD_DIR_PIN2 29   // 电机D的方向引脚
+#include <Arduino.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
 
-// 定义电机PWM值
-#define Motor_PWM 255
+// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+#define OLED_RESET     28 //4 // Reset pin # (or -1 if sharing Arduino reset pin)
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+int oldV=1, newV=0;
+#include <SoftwareSerial.h>
+//UNO: (2, 3)
+//SoftwareSerial mySerial(4, 6); // RX, TX
+int pan = 90;
+int tilt = 120;
+int window_size = 0;
+int BT_alive_cnt = 0;
+int voltCount = 0;
+#include <Servo.h>
+Servo servo_pan;
+Servo servo_tilt;
+int servo_min = 20;
+int servo_max = 160;
+
+unsigned long time;
+
+//FaBoPWM faboPWM;
+int pos = 0;
+int MAX_VALUE = 2000;
+int MIN_VALUE = 300;
+
+// Define motor pins
+#define PWMA 12    //Motor A PWM
+#define DIRA1 34
+#define DIRA2 35  //Motor A Direction
+#define PWMB 8    //Motor B PWM
+#define DIRB1 37
+#define DIRB2 36  //Motor B Direction
+#define PWMC 9   //Motor C PWM
+#define DIRC1 43
+#define DIRC2 42  //Motor C Direction
+#define PWMD 5    //Motor D PWM
+#define DIRD1 A4  //26  
+#define DIRD2 A5  //27  //Motor D Direction
+
+#define MOTORA_FORWARD(pwm)    do{digitalWrite(DIRA1,LOW); digitalWrite(DIRA2,HIGH);analogWrite(PWMA,pwm);}while(0)
+#define MOTORA_STOP(x)         do{digitalWrite(DIRA1,LOW); digitalWrite(DIRA2,LOW); analogWrite(PWMA,0);}while(0)
+#define MOTORA_BACKOFF(pwm)    do{digitalWrite(DIRA1,HIGH);digitalWrite(DIRA2,LOW); analogWrite(PWMA,pwm);}while(0)
+
+#define MOTORB_FORWARD(pwm)    do{digitalWrite(DIRB1,LOW); digitalWrite(DIRB2,HIGH);analogWrite(PWMB,pwm);}while(0)
+#define MOTORB_STOP(x)         do{digitalWrite(DIRB1,LOW); digitalWrite(DIRB2,LOW); analogWrite(PWMB,0);}while(0)
+#define MOTORB_BACKOFF(pwm)    do{digitalWrite(DIRB1,HIGH);digitalWrite(DIRB2,LOW); analogWrite(PWMB,pwm);}while(0)
+
+#define MOTORC_FORWARD(pwm)    do{digitalWrite(DIRC1,LOW); digitalWrite(DIRC2,HIGH);analogWrite(PWMC,pwm);}while(0)
+#define MOTORC_STOP(x)         do{digitalWrite(DIRC1,LOW); digitalWrite(DIRC2,LOW); analogWrite(PWMC,0);}while(0)
+#define MOTORC_BACKOFF(pwm)    do{digitalWrite(DIRC1,HIGH);digitalWrite(DIRC2,LOW); analogWrite(PWMC,pwm);}while(0)
+
+#define MOTORD_FORWARD(pwm)    do{digitalWrite(DIRD1,LOW); digitalWrite(DIRD2,HIGH);analogWrite(PWMD,pwm);}while(0)
+#define MOTORD_STOP(x)         do{digitalWrite(DIRD1,LOW); digitalWrite(DIRD2,LOW); analogWrite(PWMD,0);}while(0)
+#define MOTORD_BACKOFF(pwm)    do{digitalWrite(DIRD1,HIGH);digitalWrite(DIRD2,LOW); analogWrite(PWMD,pwm);}while(0)
+
+//PWM Definition
+#define MAX_PWM   2000
+#define MIN_PWM   300
+
+int Motor_PWM = 1900;
+
+
+//    ↑A-----B↑
+//     |  ↑  |
+//     |  |  |
+//    ↑C-----D↑
+void BACK()
+{
+  MOTORA_BACKOFF(Motor_PWM); 
+  MOTORB_FORWARD(Motor_PWM);
+  MOTORC_BACKOFF(Motor_PWM); 
+  MOTORD_FORWARD(Motor_PWM);
+}
+
+//    ↓A-----B↓
+//     |  |  |
+//     |  ↓  |
+//    ↓C-----D↓
+void ADVANCE()
+{
+  MOTORA_FORWARD(Motor_PWM); 
+  MOTORB_BACKOFF(Motor_PWM);
+  MOTORC_FORWARD(Motor_PWM); 
+  MOTORD_BACKOFF(Motor_PWM);
+}
+//    ↓A-----B↑
+//     |  ←  |
+//     |  ←  |
+//    ↑C-----D↓
+void LEFT()
+{
+  MOTORA_FORWARD(Motor_PWM); 
+  MOTORB_FORWARD(Motor_PWM);
+  MOTORC_BACKOFF(Motor_PWM); 
+  MOTORD_BACKOFF(Motor_PWM);
+}
+//    ↑A-----B↓
+//     |  →  |
+//     |  →  |
+//    ↓C-----D↑
+void RIGHT()
+{
+  MOTORA_BACKOFF(Motor_PWM); 
+  MOTORB_BACKOFF(Motor_PWM);
+  MOTORC_FORWARD(Motor_PWM); 
+  MOTORD_FORWARD(Motor_PWM);
+}
+//    =A-----B=
+//     |  =  |
+//     |  =  |
+//    =C-----D=
+void STOP()
+{
+  MOTORA_STOP(Motor_PWM);
+  MOTORB_STOP(Motor_PWM);
+  MOTORC_STOP(Motor_PWM);
+  MOTORD_STOP(Motor_PWM);
+}
 
 void setup() {
-  // 初始化电机引脚
-  pinMode(MOTORA_PWM_PIN, OUTPUT);
-  pinMode(MOTORA_DIR_PIN1, OUTPUT);
-  pinMode(MOTORA_DIR_PIN2, OUTPUT);
-  pinMode(MOTORB_PWM_PIN, OUTPUT);
-  pinMode(MOTORB_DIR_PIN1, OUTPUT);
-  pinMode(MOTORB_DIR_PIN2, OUTPUT);
-  pinMode(MOTORC_PWM_PIN, OUTPUT);
-  pinMode(MOTORC_DIR_PIN1, OUTPUT);
-  pinMode(MOTORC_DIR_PIN2, OUTPUT);
-  pinMode(MOTORD_PWM_PIN, OUTPUT);
-  pinMode(MOTORD_DIR_PIN1, OUTPUT);
-  pinMode(MOTORD_DIR_PIN2, OUTPUT);
-
   Serial.begin(9600);  // 初始化串口通信，波特率设置为9600
+  servo_pan.attach(48);
+  servo_tilt.attach(47);
 }
 
 void loop() {
@@ -83,126 +182,3 @@ void processCommand(String command) {
 }
 
 
-// 后退
-void BACK() {
-  MOTORA_BACKOFF(Motor_PWM);
-  MOTORB_BACKOFF(Motor_PWM);
-  MOTORC_BACKOFF(Motor_PWM);
-  MOTORD_BACKOFF(Motor_PWM);
-}
-
-// 前进
-void ADVANCE() {
-  MOTORA_FORWARD(Motor_PWM);
-  MOTORB_FORWARD(Motor_PWM);
-  MOTORC_FORWARD(Motor_PWM);
-  MOTORD_FORWARD(Motor_PWM);
-}
-
-// 左移
-void LEFT() {
-  MOTORA_STOP(Motor_PWM);
-  MOTORB_FORWARD(Motor_PWM);
-  MOTORC_BACKOFF(Motor_PWM);
-  MOTORD_STOP(Motor_PWM);
-}
-
-// 右移
-void RIGHT() {
-  MOTORA_FORWARD(Motor_PWM);
-  MOTORB_BACKOFF(Motor_PWM);
-  MOTORC_STOP(Motor_PWM);
-  MOTORD_FORWARD(Motor_PWM);
-}
-
-// 停止
-void STOP() {
-  MOTORA_STOP(Motor_PWM);
-  MOTORB_STOP(Motor_PWM);
-  MOTORC_STOP(Motor_PWM);
-  MOTORD_STOP(Motor_PWM);
-}
-
-// 控制电机A后退
-void MOTORA_BACKOFF(uint8_t pwm) {
-  digitalWrite(MOTORA_DIR_PIN1, HIGH);
-  digitalWrite(MOTORA_DIR_PIN2, LOW);
-  analogWrite(MOTORA_PWM_PIN, pwm);
-}
-
-// 控制电机A前进
-void MOTORA_FORWARD(uint8_t pwm) {
-  digitalWrite(MOTORA_DIR_PIN1, LOW);
-  digitalWrite(MOTORA_DIR_PIN2, HIGH);
-  analogWrite(MOTORA_PWM_PIN, pwm);
-}
-
-// 控制电机A停止
-void MOTORA_STOP(uint8_t pwm) {
-  digitalWrite(MOTORA_DIR_PIN1, LOW);
-  digitalWrite(MOTORA_DIR_PIN2, LOW);
-  analogWrite(MOTORA_PWM_PIN, pwm);
-}
-
-// 控制电机B后退
-void MOTORB_BACKOFF(uint8_t pwm) {
-  digitalWrite(MOTORB_DIR_PIN1, HIGH);
-  digitalWrite(MOTORB_DIR_PIN2, LOW);
-  analogWrite(MOTORB_PWM_PIN, pwm);
-}
-
-// 控制电机B前进
-void MOTORB_FORWARD(uint8_t pwm) {
-  digitalWrite(MOTORB_DIR_PIN1, LOW);
-  digitalWrite(MOTORB_DIR_PIN2, HIGH);
-  analogWrite(MOTORB_PWM_PIN, pwm);
-}
-
-// 控制电机B停止
-void MOTORB_STOP(uint8_t pwm) {
-  digitalWrite(MOTORB_DIR_PIN1, LOW);
-  digitalWrite(MOTORB_DIR_PIN2, LOW);
-  analogWrite(MOTORB_PWM_PIN, pwm);
-}
-
-// 控制电机C后退
-void MOTORC_BACKOFF(uint8_t pwm) {
-  digitalWrite(MOTORC_DIR_PIN1, HIGH);
-  digitalWrite(MOTORC_DIR_PIN2, LOW);
-  analogWrite(MOTORC_PWM_PIN, pwm);
-}
-
-// 控制电机C前进
-void MOTORC_FORWARD(uint8_t pwm) {
-  digitalWrite(MOTORC_DIR_PIN1, LOW);
-  digitalWrite(MOTORC_DIR_PIN2, HIGH);
-  analogWrite(MOTORC_PWM_PIN, pwm);
-}
-
-// 控制电机C停止
-void MOTORC_STOP(uint8_t pwm) {
-  digitalWrite(MOTORC_DIR_PIN1, LOW);
-  digitalWrite(MOTORC_DIR_PIN2, LOW);
-  analogWrite(MOTORC_PWM_PIN, pwm);
-}
-
-// 控制电机D后退
-void MOTORD_BACKOFF(uint8_t pwm) {
-  digitalWrite(MOTORD_DIR_PIN1, HIGH);
-  digitalWrite(MOTORD_DIR_PIN2, LOW);
-  analogWrite(MOTORD_PWM_PIN, pwm);
-}
-
-// 控制电机D前进
-void MOTORD_FORWARD(uint8_t pwm) {
-  digitalWrite(MOTORD_DIR_PIN1, LOW);
-  digitalWrite(MOTORD_DIR_PIN2, HIGH);
-  analogWrite(MOTORD_PWM_PIN, pwm);
-}
-
-// 控制电机D停止
-void MOTORD_STOP(uint8_t pwm) {
-  digitalWrite(MOTORD_DIR_PIN1, LOW);
-  digitalWrite(MOTORD_DIR_PIN2, LOW);
-  analogWrite(MOTORD_PWM_PIN, pwm);
-}
