@@ -159,24 +159,16 @@ void waitForPythonMessage() {
 
 void processCommand(String command) {
   // 在这里处理接收到的命令，可以根据需要执行相应的操作
-  switch (command) {
-    case "0":  // 静止
-      STOP();
-      break;
-    case "1":  // 前进
-      ADVANCE();
-      break;
-    case "2":  // 后退
-      BACK();
-      break;
-    case "3":  // 左移
-      LEFT();
-      break;
-    case "4":  // 右移
-      RIGHT();
-      break;
-    default:
-      break;
+  if (command == "0") {
+    STOP();
+  } else if (command == "1") {
+    ADVANCE();
+  } else if (command == "2") {
+    BACK();
+  } else if (command == "3") {
+    LEFT();
+  } else if (command == "4") {
+    RIGHT();
   }
   Serial.println("Processing command: " + command);
 }
