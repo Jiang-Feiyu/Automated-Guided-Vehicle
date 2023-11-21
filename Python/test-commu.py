@@ -24,14 +24,14 @@ def send_msg(msg):
             print("msg sent", msg)
             ser.write(msg.encode('utf-8'))
 
+            # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
+            time.sleep(2)
+
             # 读取Arduino的回复
             response = ser.readline().decode('utf-8').strip()
 
             # 打印回复消息
             print("res:", response)
-
-            # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
-            time.sleep(2)
 
         except serial.SerialException as e:
             print(f"Serial error: {e}")
@@ -44,4 +44,3 @@ def send_msg(msg):
 
 for i in range(0, 5):
     send_msg(str(i))
-    time.sleep(1)
