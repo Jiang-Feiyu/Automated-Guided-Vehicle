@@ -280,8 +280,7 @@ void setup()
 
 
   // Initialize the parameters of the car
-  SERIAL.println("Start");
-  STOP(); 
+
   servo_pan.attach(48);
   servo_tilt.attach(47);
 
