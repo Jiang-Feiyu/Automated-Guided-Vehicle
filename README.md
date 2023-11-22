@@ -114,6 +114,7 @@ Here are some steps for reference: (suppose you already have `conda`)
 3. Python msg send function: `send_msg("("+str(i)+")")`, plz be aware that the string must be included in the bracket since Arduino read data character by character.
 
 ### HTTP Communication in the Same WLAN
+#### Basic http function
 - One computer serves as the server, while another functions as the client. Run an HTTP server program on the server side and then execute an HTTP client program on the client side to facilitate communication with the server.
 - Before running these two programs, ensure that both computers are on the same network and can access each other. You can use the IP address of one computer to replace the address in server_address.
 - Find the server's IP address by using ifconfig/ipconfig (Mac/Windows). In this case, we are using Windows as the server.
@@ -150,7 +151,7 @@ Here are some steps for reference: (suppose you already have `conda`)
     # 启动服务器
     httpd.serve_forever()
     ```
-    HTTP Client
+- HTTP Client
     ```
     import requests
 
@@ -164,7 +165,7 @@ Here are some steps for reference: (suppose you already have `conda`)
     print("Server Response:")
     print(response.text)
     ```
-    Running result (sample)：
+- Running result (sample)：
     </br> server： 
     <p align=center><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4a438ed12aa848d4b38fed2e3de32056~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=595&h=67&s=6861&e=png&b=181818" alt="屏幕截图 2023-11-21 234041.png" width="90%" /></p>
     </br> client：
@@ -190,5 +191,27 @@ Here are some steps for reference: (suppose you already have `conda`)
         elif request.method == 'POST':
             # 处理客户端的POST请求，调用封装的函数
             return process_client_data()
-            
+
+#### Frontend: Remote control
+The request sent from the front-end web page is through Javascript:
+```
+fetch(serverAddress, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'message=' + message,
+            })
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Server Response:', data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+```
+The request will be sent as the click-button event is triggered.
+
 [1]:https://codeantenna.com/a/2OhcDHzc2B 
+
+
