@@ -1,8 +1,6 @@
 import serial
 import serial.tools.list_ports
 import time
-import cv2
-import numpy as np
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -52,11 +50,11 @@ def send_msg(msg):
         print("Arduino not found.")
 
 def process_client_data():
-    received_data = request.data.decode('utf-8')
+    received_data = request.form.get('message')
     print("Received from client:", received_data)
-    if (received_data == "Move on"):
+    if received_data == "Move on":
         send_msg("1")
-    elif (received_data == "Stop"):
+    elif received_data == "Stop":
         send_msg("0")
     response_to_client = "Message received by server"
     return response_to_client
