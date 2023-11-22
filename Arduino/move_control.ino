@@ -1,15 +1,49 @@
-/*
-This is the code of E12 Group Project
-*/
-
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+
+// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+#define OLED_RESET     28 //4 // Reset pin # (or -1 if sharing Arduino reset pin)
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+int oldV=1, newV=0;
 #include <SoftwareSerial.h>
+//UNO: (2, 3)
+//SoftwareSerial mySerial(4, 6); // RX, TX
+int pan = 90;
+int tilt = 120;
+int window_size = 0;
+int BT_alive_cnt = 0;
+int voltCount = 0;
 #include <Servo.h>
-#include <INA226.h>
+Servo servo_pan;
+Servo servo_tilt;
+int servo_min = 20;
+int servo_max = 160;
+
+unsigned long time;
+
+//FaBoPWM faboPWM;
+int pos = 0;
+int MAX_VALUE = 2000;
+int MIN_VALUE = 300;
+
+// Define motor pins
+#define PWMA 12    //Motor A PWM
+#define DIRA1 34
+#define DIRA2 35  //Motor A Direction
+#define PWMB 8    //Motor B PWM
+#define DIRB1 37
+#define DIRB2 36  //Motor B Direction
+#define PWMC 6   //Motor C PWM
+#define DIRC1 43
+#define DIRC2 42  //Motor C Direction
+#define PWMD 5    //Motor D PWM
+#define DIRD1 A4  //26  
+#define DIRD2 A5  //27  //Motor D Direction
 
 #define MOTORA_FORWARD(pwm)    do{digitalWrite(DIRA1,LOW); digitalWrite(DIRA2,HIGH);analogWrite(PWMA,pwm);}while(0)
 #define MOTORA_STOP(x)         do{digitalWrite(DIRA1,LOW); digitalWrite(DIRA2,LOW); analogWrite(PWMA,0);}while(0)
@@ -38,116 +72,235 @@ This is the code of E12 Group Project
   #define M_LOG BTSERIAL.println
 #endif
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET     28 //4 // Reset pin # (or -1 if sharing Arduino reset pin)
-
-// Define motor pins
-#define PWMA 12    //Motor A PWM
-#define DIRA1 34
-#define DIRA2 35  //Motor A Direction
-#define PWMB 8    //Motor B PWM
-#define DIRB1 37
-#define DIRB2 36  //Motor B Direction
-#define PWMC 6   //Motor C PWM
-#define DIRC1 43
-#define DIRC2 42  //Motor C Direction
-#define PWMD 5    //Motor D PWM
-#define DIRD1 A4  //26  
-#define DIRD2 A5  //27  //Motor D Direction
-
 //PWM Definition
 #define MAX_PWM   2000
 #define MIN_PWM   300
-#define SERVO_PIN 9        //servo connected at pin 9
-#define TOL   2           //tolerance for adc different, avoid oscillation
-#define K   5              //Step size
-
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-int oldV=1, newV=0;
-int pan = 90;
-int tilt = 120;
-int window_size = 0;
-int BT_alive_cnt = 0;
-int voltCount = 0;
-
-Servo servo_pan;
-Servo servo_tilt;
-int servo_min = 20;
-int servo_max = 160;
-
-unsigned long time;
-
-//FaBoPWM faboPWM;
-int pos = 0;
-int MAX_VALUE = 2000;
-int MIN_VALUE = 300;
-
-// Servo Definition
-Servo myservo;            //declare servo object
-int int_position=90;      //Servo initial position
-
-//variables for light intensity to ADC reading equations 
-float int_adc0, int_adc0_m, int_adc0_c;
-float int_adc1, int_adc1_m, int_adc1_c;     
-float int_left, int_right;
 
 int Motor_PWM = 1900;
-float power = 0;
 
-// Setting power sensor
-INA226 ina;
 
-/* 
-Here are functions of movement
-*/
-
+//    ↑A-----B↑
+//     |  ↑  |
+//     |  |  |
+//    ↑C-----D↑
 void BACK(uint8_t pwm_A, uint8_t pwm_B, uint8_t pwm_C, uint8_t pwm_D)
 {
-  MOTORA_BACKOFF(Motor_PWM); //    ↑A-----B↑
-  MOTORB_FORWARD(Motor_PWM); //     |  ↑  |
-  MOTORC_BACKOFF(Motor_PWM); //     |  |  |
-  MOTORD_FORWARD(Motor_PWM); //    ↑C-----D↑
+  MOTORA_BACKOFF(Motor_PWM); 
+  MOTORB_FORWARD(Motor_PWM);
+  MOTORC_BACKOFF(Motor_PWM); 
+  MOTORD_FORWARD(Motor_PWM);
 }
 
+//    ↓A-----B↓
+//     |  |  |
+//     |  ↓  |
+//    ↓C-----D↓
 void ADVANCE()
 {
-  MOTORA_FORWARD(Motor_PWM); //    ↓A-----B↓
-  MOTORB_BACKOFF(Motor_PWM); //     |  |  |
-  MOTORC_FORWARD(Motor_PWM); //     |  ↓  |
-  MOTORD_BACKOFF(Motor_PWM); //    ↓C-----D↓
+  MOTORA_FORWARD(Motor_PWM); 
+  MOTORB_BACKOFF(Motor_PWM);
+  MOTORC_FORWARD(Motor_PWM); 
+  MOTORD_BACKOFF(Motor_PWM);
 }
-
-void RIGHT()
+//    =A-----B↑
+//     |   ↖ |
+//     | ↖   |
+//    ↑C-----D=
+void LEFT_1()
 {
-  MOTORA_FORWARD(Motor_PWM); //    ↓A-----B↑
-  MOTORB_FORWARD(Motor_PWM); //     |  ←  |
-  MOTORC_BACKOFF(Motor_PWM); //     |  ←  |
-  MOTORD_BACKOFF(Motor_PWM); //    ↑C-----D↓
+  MOTORA_STOP(Motor_PWM); 
+  MOTORB_FORWARD(Motor_PWM);
+  MOTORC_BACKOFF(Motor_PWM); 
+  MOTORD_STOP(Motor_PWM);
 }
 
-void LEFT()
+//    ↓A-----B↑
+//     |  ←  |
+//     |  ←  |
+//    ↑C-----D↓
+void RIGHT_2()
 {
-  MOTORA_BACKOFF(Motor_PWM); //    ↑A-----B↓
-  MOTORB_BACKOFF(Motor_PWM); //     |  →  |
-  MOTORC_FORWARD(Motor_PWM); //     |  →  |
-  MOTORD_FORWARD(Motor_PWM); //    ↓C-----D↑
+  MOTORA_FORWARD(Motor_PWM); 
+  MOTORB_FORWARD(Motor_PWM);
+  MOTORC_BACKOFF(Motor_PWM); 
+  MOTORD_BACKOFF(Motor_PWM);
+}
+//    ↓A-----B=
+//     | ↙   |
+//     |   ↙ |
+//    =C-----D↓
+void LEFT_3()
+{
+  MOTORA_FORWARD(Motor_PWM); 
+  MOTORB_STOP(Motor_PWM);
+  MOTORC_STOP(Motor_PWM); 
+  MOTORD_BACKOFF(Motor_PWM);
+}
+//    ↑A-----B=
+//     | ↗   |
+//     |   ↗ |
+//    =C-----D↑
+void RIGHT_1()
+{
+  MOTORA_BACKOFF(Motor_PWM); 
+  MOTORB_STOP(Motor_PWM);
+  MOTORC_STOP(Motor_PWM); 
+  MOTORD_FORWARD(Motor_PWM);
+}
+//    ↑A-----B↓
+//     |  →  |
+//     |  →  |
+//    ↓C-----D↑
+void LEFT_2()
+{
+  MOTORA_BACKOFF(Motor_PWM); 
+  MOTORB_BACKOFF(Motor_PWM);
+  MOTORC_FORWARD(Motor_PWM); 
+  MOTORD_FORWARD(Motor_PWM);
+}
+//    =A-----B↓
+//     |   ↘ |
+//     | ↘   |
+//    ↓C-----D=
+void RIGHT_3()
+{
+  MOTORA_STOP(Motor_PWM); 
+  MOTORB_BACKOFF(Motor_PWM);
+  MOTORC_FORWARD(Motor_PWM); 
+  MOTORD_STOP(Motor_PWM);
 }
 
+//    ↑A-----B↓
+//     | ↗ ↘ |
+//     | ↖ ↙ |
+//    ↑C-----D↓
+void rotate_1()  //tate_1(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
+{
+  MOTORA_BACKOFF(Motor_PWM); 
+  MOTORB_BACKOFF(Motor_PWM);
+  MOTORC_BACKOFF(Motor_PWM); 
+  MOTORD_BACKOFF(Motor_PWM);
+}
+
+//    ↓A-----B↑
+//     | ↙ ↖ |
+//     | ↘ ↗ |
+//    ↓C-----D↑
+void rotate_2()  // rotate_2(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
+{
+  MOTORA_FORWARD(Motor_PWM);
+  MOTORB_FORWARD(Motor_PWM);
+  MOTORC_FORWARD(Motor_PWM);
+  MOTORD_FORWARD(Motor_PWM);
+}
+//    =A-----B=
+//     |  =  |
+//     |  =  |
+//    =C-----D=
 void STOP()
 {
-  MOTORA_STOP(Motor_PWM); //    =A-----B=
-  MOTORB_STOP(Motor_PWM); //     |  =  |
-  MOTORC_STOP(Motor_PWM); //     |  =  |
-  MOTORD_STOP(Motor_PWM); //    =C-----D=
+  MOTORA_STOP(Motor_PWM);
+  MOTORB_STOP(Motor_PWM);
+  MOTORC_STOP(Motor_PWM);
+  MOTORD_STOP(Motor_PWM);
 }
 
-// This function is used to output the voltage, current and power of the solar panel
 void UART_Control()
 {
+  String myString;
+  char BT_Data = 0;
+  // USB data
+  /****
+   * Check if USB Serial data contain brackets
+   */
 
+  if (SERIAL.available())
+  {
+    char inputChar = SERIAL.read();
+    if (inputChar == '(') { // Start loop when left bracket detected
+      myString = "";
+      inputChar = SERIAL.read();
+      while (inputChar != ')')
+      {
+        myString = myString + inputChar;
+        inputChar = SERIAL.read();
+        if (!SERIAL.available()) {
+          break;
+        }// Break when bracket closed
+      }
+    }
+    int commaIndex = myString.indexOf(','); //Split data in bracket (a, b, c)
+    //Search for the next comma just after the first
+    int secondCommaIndex = myString.indexOf(',', commaIndex + 1);
+    String firstValue = myString.substring(0, commaIndex);
+    String secondValue = myString.substring(commaIndex + 1, secondCommaIndex);
+    String thirdValue = myString.substring(secondCommaIndex + 1); // To the end of the string
+    if ((firstValue.toInt() > servo_min and firstValue.toInt() < servo_max) and  //Convert them to numbers
+        (secondValue.toInt() > servo_min and secondValue.toInt() < servo_max)) {
+      pan = firstValue.toInt();
+      tilt = secondValue.toInt();
+      window_size = thirdValue.toInt();
+    }
+    SERIAL.flush();
+    Serial3.println(myString);
+    Serial3.println("Done");
+    if (myString != "") {
+      display.clearDisplay();
+      display.setCursor(0, 0);     // Start at top-left corner
+      display.println("Serial_Data = ");
+      display.println(myString);
+      display.display();
+    }
+  }
+
+
+
+
+
+
+
+  //BT Control
+  /*
+    Receive data from app and translate it to motor movements
+  */
+  // BT Module on Serial 3 (D14 & D15)
+  if (Serial3.available())
+  {
+    BT_Data = Serial3.read();
+    SERIAL.print(BT_Data);
+    Serial3.flush();
+    BT_alive_cnt = 100;
+    display.clearDisplay();
+    display.setCursor(0, 0);     // Start at top-left corner
+    display.println("BT_Data = ");
+    display.println(BT_Data);
+    display.display();
+  }
+
+  BT_alive_cnt = BT_alive_cnt - 1;
+  if (BT_alive_cnt <= 0) {
+    STOP();
+  }
+  switch (BT_Data)
+  {
+    case 'A':  ADVANCE();  M_LOG("Run!\r\n"); break;
+    case 'B':  RIGHT_2();  M_LOG("Right up!\r\n");     break;
+    case 'C':  rotate_1();                            break;
+    case 'D':  RIGHT_3();  M_LOG("Right down!\r\n");   break;
+    case 'E':  BACK(500, 500, 500, 500);     M_LOG("Run!\r\n");          break;
+    case 'F':  LEFT_3();   M_LOG("Left down!\r\n");    break;
+    case 'G':  rotate_2();                              break;
+    case 'H':  LEFT_2();   M_LOG("Left up!\r\n");     break;
+    case 'Z':  STOP();     M_LOG("Stop!\r\n");        break;
+    case 'z':  STOP();     M_LOG("Stop!\r\n");        break;
+    case 'd':  LEFT_2();   M_LOG("Left!\r\n");        break;
+    case 'b':  RIGHT_2();  M_LOG("Right!\r\n");        break;
+    case 'L':  Motor_PWM = 1500;                      break;
+    case 'M':  Motor_PWM = 500;                       break;
+  }
 }
+
+
 
 /*Voltage Readings transmitter
 Sends them via Serial3*/
@@ -163,115 +316,15 @@ void sendVolt(){
 }
 
 
-// This is the function for printing the power
-void checkConfig()
-{
-  Serial.print("Mode:                  ");
-  switch (ina.getMode())
-  {
-    case INA226_MODE_POWER_DOWN:      Serial.println("Power-Down"); break;
-    case INA226_MODE_SHUNT_TRIG:      Serial.println("Shunt Voltage, Triggered"); break;
-    case INA226_MODE_BUS_TRIG:        Serial.println("Bus Voltage, Triggered"); break;
-    case INA226_MODE_SHUNT_BUS_TRIG:  Serial.println("Shunt and Bus, Triggered"); break;
-    case INA226_MODE_ADC_OFF:         Serial.println("ADC Off"); break;
-    case INA226_MODE_SHUNT_CONT:      Serial.println("Shunt Voltage, Continuous"); break;
-    case INA226_MODE_BUS_CONT:        Serial.println("Bus Voltage, Continuous"); break;
-    case INA226_MODE_SHUNT_BUS_CONT:  Serial.println("Shunt and Bus, Continuous"); break;
-    default: Serial.println("unknown");
-  }
-  
-  Serial.print("Samples average:       ");
-  switch (ina.getAverages())
-  {
-    case INA226_AVERAGES_1:           Serial.println("1 sample"); break;
-    case INA226_AVERAGES_4:           Serial.println("4 samples"); break;
-    case INA226_AVERAGES_16:          Serial.println("16 samples"); break;
-    case INA226_AVERAGES_64:          Serial.println("64 samples"); break;
-    case INA226_AVERAGES_128:         Serial.println("128 samples"); break;
-    case INA226_AVERAGES_256:         Serial.println("256 samples"); break;
-    case INA226_AVERAGES_512:         Serial.println("512 samples"); break;
-    case INA226_AVERAGES_1024:        Serial.println("1024 samples"); break;
-    default: Serial.println("unknown");
-  }
 
-  Serial.print("Bus conversion time:   ");
-  switch (ina.getBusConversionTime())
-  {
-    case INA226_BUS_CONV_TIME_140US:  Serial.println("140uS"); break;
-    case INA226_BUS_CONV_TIME_204US:  Serial.println("204uS"); break;
-    case INA226_BUS_CONV_TIME_332US:  Serial.println("332uS"); break;
-    case INA226_BUS_CONV_TIME_588US:  Serial.println("558uS"); break;
-    case INA226_BUS_CONV_TIME_1100US: Serial.println("1.100ms"); break;
-    case INA226_BUS_CONV_TIME_2116US: Serial.println("2.116ms"); break;
-    case INA226_BUS_CONV_TIME_4156US: Serial.println("4.156ms"); break;
-    case INA226_BUS_CONV_TIME_8244US: Serial.println("8.244ms"); break;
-    default: Serial.println("unknown");
-  }
-
-  Serial.print("Shunt conversion time: ");
-  switch (ina.getShuntConversionTime())
-  {
-    case INA226_SHUNT_CONV_TIME_140US:  Serial.println("140uS"); break;
-    case INA226_SHUNT_CONV_TIME_204US:  Serial.println("204uS"); break;
-    case INA226_SHUNT_CONV_TIME_332US:  Serial.println("332uS"); break;
-    case INA226_SHUNT_CONV_TIME_588US:  Serial.println("558uS"); break;
-    case INA226_SHUNT_CONV_TIME_1100US: Serial.println("1.100ms"); break;
-    case INA226_SHUNT_CONV_TIME_2116US: Serial.println("2.116ms"); break;
-    case INA226_SHUNT_CONV_TIME_4156US: Serial.println("4.156ms"); break;
-    case INA226_SHUNT_CONV_TIME_8244US: Serial.println("8.244ms"); break;
-    default: Serial.println("unknown");
-  }
-  
-  Serial.print("Max possible current:  ");
-  Serial.print(ina.getMaxPossibleCurrent());
-  Serial.println(" A");
-
-  Serial.print("Max current:           ");
-  Serial.print(ina.getMaxCurrent());
-  Serial.println(" A");
-
-  Serial.print("Max shunt voltage:     ");
-  Serial.print(ina.getMaxShuntVoltage());
-  Serial.println(" V");
-
-  Serial.print("Max power:             ");
-  Serial.print(ina.getMaxPower());
-  Serial.println(" W");
+void setup() {
+  Serial.begin(9600);  // 初始化串口通信，波特率为9600
 }
 
-
-//Where the program starts
-void setup()
-{
-  SERIAL.begin(9600); // USB serial setup
-
-  //Setup Voltage detector
-  pinMode(A0, INPUT);
-  pinMode(A1, INPUT);
-
-  // Servo connection
-  myservo.attach(SERVO_PIN);
-  myservo.write(int_position);
-  delay(500); 
-
-
-  // Initialize the parameters of the car
-
-  servo_pan.attach(48);
-  servo_tilt.attach(47);
-
-  //Setup the power sensor
-  // Default INA226 address is 0x40
-  ina.begin();
-  ina.configure(INA226_AVERAGES_16, INA226_BUS_CONV_TIME_2116US, INA226_SHUNT_CONV_TIME_2116US, INA226_MODE_SHUNT_BUS_CONT);
-  ina.calibrate(0.0015, 4);
-  checkConfig();
-}
-
-void loop(){
+void loop() {
+  // sendResponseToPython("aaa");
   waitForPythonMessage();
-  }
-
+}
 
 void sendResponseToPython(String response) {
   Serial.println(response);
@@ -296,15 +349,8 @@ void waitForPythonMessage() {
 
 void processCommand(String command) {
   // 在这里处理接收到的命令，可以根据需要执行相应的操作
-  if (command == "(0)") {
-    STOP();
-  } else if (command == "(1)") {
+  if (command =="1"){
     ADVANCE();
-  } else if (command == "(2)") {
-    BACK(500, 500, 500, 500);
-  } else if (command == "(3)") {
-    LEFT();
-  } else if (command == "(4)") {
-    RIGHT();
-  }
+    }
+  Serial.println("Processing command: " + command);
 }
