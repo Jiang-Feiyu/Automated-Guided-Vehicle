@@ -52,9 +52,9 @@ def send_msg(msg):
 def process_client_data():
     received_data = request.form.get('message')
     print("Received from client:", received_data)
-    if received_data == "Wake up":
+    if received_data == "wake up":
         send_msg("1")
-    elif received_data == "Stop":
+    elif received_data == "stop":
         send_msg("0")
     response_to_client = "Message received by server"
     return response_to_client
