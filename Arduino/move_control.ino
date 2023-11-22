@@ -352,5 +352,11 @@ void processCommand(String command) {
   if (command =="1"){
     ADVANCE();
     }
+  if (command =="2"){
+    LEFT_1();
+    }
+  if (command =="3"){
+    RIGHT_1();
+    }
   Serial.println("Processing command: " + command);
 }
