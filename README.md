@@ -170,4 +170,25 @@ Here are some steps for reference: (suppose you already have `conda`)
     </br> client：
     <p align=center><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/b5236dd5722649f1ad14fcac5b31a9b4~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2144&h=1048&s=195607&e=png&b=181818" alt="螢幕截圖 2023-11-21 下午11.42.57.png" width="90%" /></p>
 
+#### **Server Side**: Flask
+
+   Our server is designed based on Python `Flask`, all the request from client should be `POST` request, the `process_client_data` function will read and send the specific message to Arduino.  
+   
+    def process_client_data():
+        received_data = request.form.get('message')
+        print("Received from client:", received_data)
+        # hand the received_data through content
+        response_to_client = "Message received by server"
+        return response_to_client
+        
+    # 定义路由，处理GET和POST请求
+    @app.route('/', methods=['GET', 'POST'])
+    def index():
+        if request.method == 'GET':
+            # 处理客户端的GET请求
+            return "Server is ready to receive messages"
+        elif request.method == 'POST':
+            # 处理客户端的POST请求，调用封装的函数
+            return process_client_data()
+            
 [1]:https://codeantenna.com/a/2OhcDHzc2B 
