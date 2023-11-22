@@ -1,5 +1,19 @@
 # ELEC3848_gp
 ## Group E12
+## Overall structure of our project
+### Data flow of our project
+```mermaid
+graph LR
+A(Camera) --> B(PC)
+C(Frontend Web) --http---> D(Raspberry Pi)
+B{PC} --http---> D(Raspberry Pi)
+D(Raspberry Pi)--Physical Serial ---> E[Arduino Mega2560]
+```
+-   **Camera**: Using OpenCV to collect data and send the frames to the PC for model inference.
+-   **PC**: Analyzing data and sending the coordinates of the car and suspicious items to the Raspberry Pi for further analysis.
+-   **Frontend Web Page**: This serves as the remote control for workers to remotely activate and stop the car (Arduino).
+-   **Raspberry Pi**: It continuously listens to the client for commands to wake up or stop. Once awakened, it receives data from the PC to calculate the car's route and sends instructions to Arduino through the physical serial port.
+-   **Arduino Mega2560**: Receives data from the Raspberry Pi and moves according to the instructions.
 # Item Recognition with OpenCV
 ## Environment setting
 It is recommended to create a virtual environment with **Conda** and run the program in the virtual environment.
