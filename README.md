@@ -7,7 +7,7 @@
 graph LR
 A(Camera) --> B(PC)
 C(Frontend Web) --http---> D{Raspberry Pi}
-B(PC) --http---> D(Raspberry Pi}
+B(PC) --http---> D{Raspberry Pi}
 D(Raspberry Pi)--Physical Serial ---> E[Arduino Mega2560]
 ```
 -   **Camera**: Using OpenCV to collect data and send the frames to the PC for model inference.
