@@ -1,74 +1,91 @@
-import serial
-import serial.tools.list_ports
-import time
-from flask import Flask, request
+<!DOCTYPE html>
+<html lang="en">
 
-app = Flask(__name__)
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Example</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('1.avif');
+            /* Set the background image */
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: white;
+        }
 
-# 查找串口号
-def find_arduino_port():
-    ports = serial.tools.list_ports.grep("1a86:7523")
-    for port, desc, hwid in ports:
-        return port
-    return None
+        /* Style for the buttons */
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            /* Green background color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
 
-# 信息发送
-def send_msg(msg):
-    # 查找Arduino串口号
-    arduino_port = find_arduino_port()
-    print("arduino_port:", arduino_port)
+        /* Hide the emergencyStopButton initially */
+        #emergencyStopButton {
+            display: none;
+        }
+    </style>
+</head>
 
-    if arduino_port:
-        try:
-            ser = serial.Serial(arduino_port, 9600, timeout=1)
-            print("ser.is_open")
+<body>
 
-            # 向Arduino发送消息
-            tag = 0
-            while (tag == 0):
-                print("msg sent", msg)
-                ser.write(msg.encode('utf-8'))
+    <h1>Unmanned Automatic Inspection System for Patrol of Suspicious Objects</h1>
 
-                # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
-                time.sleep(3)
+    <button id="sendRequestButton">Start Patrol</button>
+    <button id="emergencyStopButton">Emergency Stop</button>
 
-                # 读取Arduino的回复
-                res=ser.readline()
-                if (res):
-                   # 打印回复消息
-                    response_str = res.decode('utf-8')
-                    print("res:", response_str)
-                    tag = 1
-                else:
-                    print("no response yet")
-        except serial.SerialException as e:
-            print(f"Serial error: {e}")
-        finally:
-            # 关闭串口连接
-            ser.close()
-    else:
-        print("Arduino not found.")
+    <script>
+        document.getElementById("sendRequestButton").addEventListener("click", function () {
+            var serverAddress = 'http://192.168.50.183:8888';
+            var message_wak = 'wake up';
 
-def process_client_data():
-    received_data = request.form.get('message')
-    print("Received from client:", received_data)
-    if received_data == "Move on":
-        send_msg("1")
-    elif received_data == "Stop":
-        send_msg("0")
-    response_to_client = "Message received by server"
-    return response_to_client
+            fetchRequest(serverAddress, message_wak);
 
-# 定义路由，处理GET和POST请求
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'GET':
-        # 处理客户端的GET请求
-        return "Server is ready to receive messages"
-    elif request.method == 'POST':
-        # 处理客户端的POST请求，调用封装的函数
-        return process_client_data()
+            document.getElementById("sendRequestButton").style.display = "none";
+            document.getElementById("emergencyStopButton").style.display = "inline-block";
+        });
 
-if __name__ == '__main__':
-    # 运行Flask应用
-    app.run(host='0.0.0.0', port=8888)
+        document.getElementById("emergencyStopButton").addEventListener("click", function () {
+            var serverAddress = 'http://192.168.50.183:8888';
+            var message_stp = 'stop';
+
+            fetchRequest(serverAddress, message_stp);
+        });
+
+        function fetchRequest(serverAddress, message) {
+            alert('send successfully');
+
+            fetch(serverAddress, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'message=' + message,
+            })
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Server Response:', data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+
+</body>
+
+</html>
