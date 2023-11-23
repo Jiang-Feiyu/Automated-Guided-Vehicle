@@ -3,7 +3,12 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
 
+// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+#define OLED_RESET     28 //4 // Reset pin # (or -1 if sharing Arduino reset pin)
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 int oldV=1, newV=0;
 #include <SoftwareSerial.h>
 //UNO: (2, 3)
@@ -25,9 +30,6 @@ unsigned long time;
 int pos = 0;
 int MAX_VALUE = 2000;
 int MIN_VALUE = 300;
-
-// Define motoe rotate duration
-int movementDuration = 1000; // 1000 milliseconds (1 second)
 
 // Define motor pins
 #define PWMA 12    //Motor A PWM
@@ -75,7 +77,7 @@ int movementDuration = 1000; // 1000 milliseconds (1 second)
 #define MIN_PWM   300
 
 int Motor_PWM = 1900;
-
+int movementDuration = 1000;
 
 //    ↑A-----B↑
 //     |  ↑  |
