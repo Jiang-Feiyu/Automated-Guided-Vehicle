@@ -12,10 +12,7 @@ prev_center_y = None
 prev_yellow_x = None
 prev_yellow_y = None
 
-def detect_and_draw_largest_red_object(frame):
-    prev_center_x = 0
-    prev_center_y = 0
-
+def detect_object(frame):
     # Convert BGR to HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -23,85 +20,73 @@ def detect_and_draw_largest_red_object(frame):
     lower_red = np.array([0, 100, 100])
     upper_red = np.array([10, 255, 255])
 
-    # Threshold the HSV image to get only red colors
-    mask = cv2.inRange(hsv, lower_red, upper_red)
-
-    # Find contours in the mask
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Initialize variables to keep track of the largest contour and its area
-    largest_contour = None
-    largest_area = 0
-
-    for contour in contours:
-        # Calculate area to filter out small contours (noise)
-        area = cv2.contourArea(contour)
-        if area > 100:
-            # Update largest contour if current contour has a larger area
-            if area > largest_area:
-                largest_area = area
-                largest_contour = contour
-
-    if largest_contour is not None:
-        # Draw rectangle around the largest red object
-        x, y, w, h = cv2.boundingRect(largest_contour)
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-        # Calculate the center of the rectangle
-        prev_center_x = x + w // 2
-        prev_center_y = frame.shape[0] - (y + h // 2)  # Invert y coordinate
-
-        print("Red coordinates:", prev_center_x, prev_center_y)
-
-    cv2.imshow('Largest Red Object Detection', frame)
-
-    return prev_center_x, prev_center_y
-
-def detect_and_record_largest_yellow_object(frame):
-    prev_yellow_x = 0
-    prev_yellow_y = 0
-
-    # Convert BGR to HSV
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
     # Define the range of yellow color in HSV
     lower_yellow = np.array([20, 100, 100])
     upper_yellow = np.array([30, 255, 255])
 
+    # Threshold the HSV image to get only red colors
+    red_mask = cv2.inRange(hsv, lower_red, upper_red)
+
     # Threshold the HSV image to get only yellow colors
-    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    yellow_mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 
-    # Find contours in the mask
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Find contours in the red mask
+    red_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Initialize variables to keep track of the largest contour and its area
-    largest_contour = None
-    largest_area = 0
+    # Find contours in the yellow mask
+    yellow_contours, _ = cv2.findContours(yellow_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    for contour in contours:
-        # Calculate area to filter out small contours (noise)
+    # Initialize variables to keep track of the largest contours and their areas
+    largest_red_contour = None
+    largest_yellow_contour = None
+    largest_red_area = 0
+    largest_yellow_area = 0
+
+    # Process red contours
+    for contour in red_contours:
         area = cv2.contourArea(contour)
         if area > 100:
-            # Update largest contour if current contour has a larger area
-            if area > largest_area:
-                largest_area = area
-                largest_contour = contour
+            if area > largest_red_area:
+                largest_red_area = area
+                largest_red_contour = contour
 
-    if largest_contour is not None:
-        # Draw rectangle around the largest yellow object
-        x, y, w, h = cv2.boundingRect(largest_contour)
+    # Process yellow contours
+    for contour in yellow_contours:
+        area = cv2.contourArea(contour)
+        if area > 100:
+            if area > largest_yellow_area:
+                largest_yellow_area = area
+                largest_yellow_contour = contour
+
+    # Draw rectangle around the largest red object
+    if largest_red_contour is not None:
+        x, y, w, h = cv2.boundingRect(largest_red_contour)
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        # Calculate the center of the rectangle
+        red_center_x = x + w // 2
+        red_center_y = frame.shape[0] - (y + h // 2)  # Invert y coordinate
+
+        print("Red coordinates:", red_center_x, red_center_y)
+    else:
+        red_center_x, red_center_y = 0, 0
+
+    # Draw rectangle around the largest yellow object
+    if largest_yellow_contour is not None:
+        x, y, w, h = cv2.boundingRect(largest_yellow_contour)
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
 
         # Calculate the center of the rectangle
-        prev_yellow_x = x + w // 2
-        prev_yellow_y = frame.shape[0] - (y + h // 2)  # Invert y coordinate
+        yellow_center_x = x + w // 2
+        yellow_center_y = frame.shape[0] - (y + h // 2)  # Invert y coordinate
 
-        print("Yellow coordinates:", prev_yellow_x, prev_yellow_y)
+        print("Yellow coordinates:", yellow_center_x, yellow_center_y)
+    else:
+        yellow_center_x, yellow_center_y = 0, 0
 
-    cv2.imshow('Largest Yellow Object Detection', frame)
+    cv2.imshow('Object Detection', frame)
 
-    return prev_yellow_x, prev_yellow_y
-
+    return red_center_x, red_center_y, yellow_center_x, yellow_center_y
 
 # 向server发送http请求
 def http_send(server_address, message):
@@ -126,12 +111,17 @@ def main():
     while cap.isOpened():
         ret, frame = cap.read()
 
+        # 获取摄像头的帧宽度和帧高度
+        # frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        # frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        # print(frame_width)
+        # print(frame_height)
+
         if not ret:
             print("Failed to capture frame. Exiting...")
             break
 
-        center_x, center_y = detect_and_draw_largest_red_object(frame)
-        yellow_x, yellow_y = detect_and_record_largest_yellow_object(frame)
+        center_x, center_y, yellow_x, yellow_y = detect_object(frame)
         msg=str(center_x)+" "+str(center_y)+" "+str(yellow_x)+" "+str(yellow_y)
         print("msg------->", msg)
         http_send(server_address,msg)
