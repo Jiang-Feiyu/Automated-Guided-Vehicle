@@ -38,7 +38,7 @@ int MIN_VALUE = 300;
 #define PWMB 8    //Motor B PWM
 #define DIRB1 37
 #define DIRB2 36  //Motor B Direction
-#define PWMC 9   //Motor C PWM
+#define PWMC 6   //Motor C PWM
 #define DIRC1 43
 #define DIRC2 42  //Motor C Direction
 #define PWMD 5    //Motor D PWM
