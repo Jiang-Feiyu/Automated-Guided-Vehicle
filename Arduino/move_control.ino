@@ -99,6 +99,14 @@ void ADVANCE()
   MOTORB_BACKOFF(Motor_PWM);
   MOTORC_FORWARD(Motor_PWM); 
   MOTORD_BACKOFF(Motor_PWM);
+
+  delay(movementDuration); // Pause for the specified duration
+
+  // Stop the motors after the specified duration
+  MOTORA_STOP(0); 
+  MOTORB_STOP(0);
+  MOTORC_STOP(0);
+  MOTORD_STOP(0);
 }
 
 //    ↓A-----B↑
