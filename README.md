@@ -120,11 +120,11 @@ Here are some steps for reference: (suppose you already have `conda`)
 - Find the server's IP address by using ifconfig/ipconfig (Mac/Windows). In this case, we are using Windows as the server.
 - Obtain the IP address by searching for "Wireless LAN Adapter".
     ```
-    无线局域网适配器 WLAN:
-       连接特定的 DNS 后缀 . . . . . . . :
-       IPv4 地址 . . . . . . . . . . . . : 192.168.1.20
-       子网掩码  . . . . . . . . . . . . : 255.255.255.0
-       默认网关. . . . . . . . . . . . . : 192.168.1.1
+    Wireless LAN adapter WLAN:
+    Connection specific DNS suffix . . . : 
+    IPv4 address. . . . . . . . . . . . .: 192.168.1.20 
+    Subnet mask  . . . . . . . . . . . . : 255.255.255.0 
+    Default gateway. . . . . . . . . . . : 192.168.1.1
     ```
     Replace the IP address in the WLAN section
 - Attention
