@@ -105,10 +105,10 @@ void ADVANCE()
   delay(movementDuration); // Pause for the specified duration
 
   // Stop the motors after the specified duration
-  MOTORA_STOP(0); 
-  MOTORB_STOP(0);
-  MOTORC_STOP(0);
-  MOTORD_STOP(0);
+  // MOTORA_STOP(0); 
+  // MOTORB_STOP(0);
+  // MOTORC_STOP(0);
+  // MOTORD_STOP(0);
 }
 
 //    ↓A-----B↑
