@@ -49,23 +49,55 @@ def send_msg(msg):
     else:
         print("Arduino not found.")
 
+# 导航程序
+def navigate_to_point(center_x, center_y, yellow_x, yellow_y):
+    # 移动方向： 
+    # 0 -> stop 
+    # 1 -> up 
+    # 2 -> down 
+    # 3 -> left 
+    # 4 -> right 
+    tol = 30
+    # Calculate the differences in x and y coordinates
+    dx = yellow_x - center_x
+    dy = yellow_y - center_y
+
+    # Check whether to move up, down, left, or right
+    if abs(dx) <= tol and abs(dy) <= tol:
+        # Stop if the target is reached
+        send_msg("0")
+    elif abs(dx) > abs(dy):
+        # Move left or right
+        if dx > 0:
+            # Move right
+            send_msg("4")
+        else:
+            # Move left
+            send_msg("3")
+    else:
+        # Move up or down
+        if dy > 0:
+            # Move down
+            send_msg("2")
+        else:
+            # Move up
+            send_msg("1")
+
+# 数据处理
 def process_client_data():
     received_data = request.form.get('message')
     print("Received from client:", received_data)
+    if received_data == "":
+        print("No Msg")
+        response_to_client = "Message received by server"
+        return response_to_client
     if received_data == "wake up":
         send_msg("1")
     elif received_data == "stop":
         send_msg("0")
-    elif received_data == "1":
-        send_msg("1")
-    elif received_data == "2":
-        send_msg("2")
-    elif received_data == "3":
-        send_msg("3")
-    elif received_data == "4":
-        send_msg("4")
-    elif received_data == "0":
-        send_msg("0")
+    else:
+        center_x, center_y, yellow_x, yellow_y = received_data.split(" ")
+        navigate_to_point(center_x, center_y, yellow_x, yellow_y)
     response_to_client = "Message received by server"
     return response_to_client
 
