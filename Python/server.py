@@ -64,8 +64,8 @@ def process_client_data():
         send_msg("3")
     elif received_data == "4":
         send_msg("4")
-    elif received_data == "5":
-        send_msg("5")
+    elif received_data == "0":
+        send_msg("0")
     response_to_client = "Message received by server"
     return response_to_client
 
