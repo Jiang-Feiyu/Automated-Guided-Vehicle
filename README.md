@@ -137,31 +137,31 @@ Here are some steps for reference: (suppose you already have `conda`)
     from http.server import SimpleHTTPRequestHandler
     from socketserver import TCPServer
 
-    # 指定服务器地址和端口
-    host = '0.0.0.0'  # 可以是具体的IP地址，也可以是0.0.0.0表示接受任何可用的网络接口
+    # Specify server address and port
+    host = '0.0.0.0'  # Can be a specific IP address, or 0.0.0.0 to accept any available network interface
     port = 8888
 
-    # 设置服务器
+    # Set up server
     server_address = (host, port)
     httpd = TCPServer(server_address, SimpleHTTPRequestHandler)
 
-    # 打印服务器信息
+    # Print server information
     print(f"Serving on {host}:{port}")
 
-    # 启动服务器
+    # Start the server
     httpd.serve_forever()
     ```
 - HTTP Client
     ```
     import requests
 
-    # 服务器地址和端口
-    server_address = 'http://192.168.1.20:8888'  # 请替换为你的服务器地址和端口
+    # Server address and port
+    server_address = 'http://192.168.1.20:8888' 
 
-    # 发送HTTP GET请求
+    # Send HTTP GET request
     response = requests.get(server_address)
 
-    # 打印服务器响应
+    # Print server response
     print("Server Response:")
     print(response.text)
     ```
@@ -182,14 +182,14 @@ Here are some steps for reference: (suppose you already have `conda`)
         response_to_client = "Message received by server"
         return response_to_client
         
-    # 定义路由，处理GET和POST请求
+    # Define routes and handle GET and POST requests
     @app.route('/', methods=['GET', 'POST'])
     def index():
         if request.method == 'GET':
-            # 处理客户端的GET请求
+            # Handle client's GET request
             return "Server is ready to receive messages"
         elif request.method == 'POST':
-            # 处理客户端的POST请求，调用封装的函数
+            # Process the client's POST request and call the encapsulated function
             return process_client_data()
 
 #### Frontend: Remote control
