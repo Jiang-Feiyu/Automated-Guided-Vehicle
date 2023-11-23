@@ -54,8 +54,8 @@ Here are some steps for reference: (suppose you already have `conda`)
         ```
         try: 
             while 1: 
-                res=ser.readline() #读取数据并打印 
-                print(res) #串口发送数据 
+                res=ser.readline() #read in data and print 
+                print(res) #send the data
                 time.sleep(1) 
                 ser.write("Hello! I am Raspberry!".encode("utf-8"))
         except: 
@@ -68,19 +68,19 @@ Here are some steps for reference: (suppose you already have `conda`)
             ser = serial.Serial(arduino_port, 9600, timeout=1)
             print("ser.is_open")
 
-            # 向Arduino发送消息
+            # send data to Arduino
             tag = 0
             while (tag == 0):
                 print("msg sent", msg)
                 ser.write(msg.encode('utf-8'))
 
-                # 等待一段时间，以确保Arduino有足够的时间处理消息并发送回复
+                # wait for a while, to make sure Arduino have enough time to process data & reply
                 time.sleep(3)
 
-                # 读取Arduino的回复
+                # read in Arduino reply
                 res=ser.readline()
                 if (res):
-                   # 打印回复消息
+                   # print reply
                     response_str = res.decode('utf-8')
                     print("res:", response_str)
                     tag = 1
@@ -89,7 +89,7 @@ Here are some steps for reference: (suppose you already have `conda`)
         except serial.SerialException as e:
             print(f"Serial error: {e}")
         finally:
-            # 关闭串口连接
+            # close
             ser.close()
         ```
     5. Make sure Arduino and Raspberry are in the same baud rate and the frequency of sending and receieving data should be carefully considered.
