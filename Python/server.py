@@ -72,3 +72,8 @@ def index():
 if __name__ == '__main__':
     # 运行Flask应用
     app.run(host='0.0.0.0', port=8888)
+    send_msg("0")
+    send_msg("1")
+    send_msg("2")
+    send_msg("3")
+    send_msg("4")
