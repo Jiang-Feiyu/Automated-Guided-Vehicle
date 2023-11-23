@@ -57,7 +57,7 @@ def navigate_to_point(center_x, center_y, yellow_x, yellow_y):
     # 2 -> down 
     # 3 -> left 
     # 4 -> right 
-    tol = 30
+    tol = 100
     # Calculate the differences in x and y coordinates
     dx = int(yellow_x) - int(center_x)
     dy = int(yellow_y) - int(center_y)
