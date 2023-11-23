@@ -177,6 +177,8 @@ void setup() {
 void loop() {
   // sendResponseToPython("aaa");
   // waitForPythonMessage();
+  ADVANCE();
+  ADVANCE();
 }
 
 void sendResponseToPython(String response) {
