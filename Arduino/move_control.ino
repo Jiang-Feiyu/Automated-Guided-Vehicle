@@ -3,12 +3,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
 
-// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET     28 //4 // Reset pin # (or -1 if sharing Arduino reset pin)
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 int oldV=1, newV=0;
 #include <SoftwareSerial.h>
 //UNO: (2, 3)
@@ -102,79 +97,36 @@ void ADVANCE()
   MOTORC_FORWARD(Motor_PWM); 
   MOTORD_BACKOFF(Motor_PWM);
 }
-//    =A-----B↑
-//     |   ↖ |
-//     | ↖   |
-//    ↑C-----D=
-void LEFT_1()
-{
-  MOTORA_STOP(Motor_PWM); 
-  MOTORB_FORWARD(Motor_PWM);
-  MOTORC_BACKOFF(Motor_PWM); 
-  MOTORD_STOP(Motor_PWM);
-}
 
 //    ↓A-----B↑
 //     |  ←  |
 //     |  ←  |
 //    ↑C-----D↓
-void RIGHT_2()
+void RIGHT()
 {
   MOTORA_FORWARD(Motor_PWM); 
   MOTORB_FORWARD(Motor_PWM);
   MOTORC_BACKOFF(Motor_PWM); 
   MOTORD_BACKOFF(Motor_PWM);
 }
-//    ↓A-----B=
-//     | ↙   |
-//     |   ↙ |
-//    =C-----D↓
-void LEFT_3()
-{
-  MOTORA_FORWARD(Motor_PWM); 
-  MOTORB_STOP(Motor_PWM);
-  MOTORC_STOP(Motor_PWM); 
-  MOTORD_BACKOFF(Motor_PWM);
-}
-//    ↑A-----B=
-//     | ↗   |
-//     |   ↗ |
-//    =C-----D↑
-void RIGHT_1()
-{
-  MOTORA_BACKOFF(Motor_PWM); 
-  MOTORB_STOP(Motor_PWM);
-  MOTORC_STOP(Motor_PWM); 
-  MOTORD_FORWARD(Motor_PWM);
-}
+
 //    ↑A-----B↓
 //     |  →  |
 //     |  →  |
 //    ↓C-----D↑
-void LEFT_2()
+void LEFT()
 {
   MOTORA_BACKOFF(Motor_PWM); 
   MOTORB_BACKOFF(Motor_PWM);
   MOTORC_FORWARD(Motor_PWM); 
   MOTORD_FORWARD(Motor_PWM);
-}
-//    =A-----B↓
-//     |   ↘ |
-//     | ↘   |
-//    ↓C-----D=
-void RIGHT_3()
-{
-  MOTORA_STOP(Motor_PWM); 
-  MOTORB_BACKOFF(Motor_PWM);
-  MOTORC_FORWARD(Motor_PWM); 
-  MOTORD_STOP(Motor_PWM);
 }
 
 //    ↑A-----B↓
 //     | ↗ ↘ |
 //     | ↖ ↙ |
 //    ↑C-----D↓
-void rotate_1()  //tate_1(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
+void rotate()  //tate_1(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
 {
   MOTORA_BACKOFF(Motor_PWM); 
   MOTORB_BACKOFF(Motor_PWM);
@@ -182,17 +134,6 @@ void rotate_1()  //tate_1(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_
   MOTORD_BACKOFF(Motor_PWM);
 }
 
-//    ↓A-----B↑
-//     | ↙ ↖ |
-//     | ↘ ↗ |
-//    ↓C-----D↑
-void rotate_2()  // rotate_2(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
-{
-  MOTORA_FORWARD(Motor_PWM);
-  MOTORB_FORWARD(Motor_PWM);
-  MOTORC_FORWARD(Motor_PWM);
-  MOTORD_FORWARD(Motor_PWM);
-}
 //    =A-----B=
 //     |  =  |
 //     |  =  |
@@ -204,103 +145,6 @@ void STOP()
   MOTORC_STOP(Motor_PWM);
   MOTORD_STOP(Motor_PWM);
 }
-
-void UART_Control()
-{
-  String myString;
-  char BT_Data = 0;
-  // USB data
-  /****
-   * Check if USB Serial data contain brackets
-   */
-
-  if (SERIAL.available())
-  {
-    char inputChar = SERIAL.read();
-    if (inputChar == '(') { // Start loop when left bracket detected
-      myString = "";
-      inputChar = SERIAL.read();
-      while (inputChar != ')')
-      {
-        myString = myString + inputChar;
-        inputChar = SERIAL.read();
-        if (!SERIAL.available()) {
-          break;
-        }// Break when bracket closed
-      }
-    }
-    int commaIndex = myString.indexOf(','); //Split data in bracket (a, b, c)
-    //Search for the next comma just after the first
-    int secondCommaIndex = myString.indexOf(',', commaIndex + 1);
-    String firstValue = myString.substring(0, commaIndex);
-    String secondValue = myString.substring(commaIndex + 1, secondCommaIndex);
-    String thirdValue = myString.substring(secondCommaIndex + 1); // To the end of the string
-    if ((firstValue.toInt() > servo_min and firstValue.toInt() < servo_max) and  //Convert them to numbers
-        (secondValue.toInt() > servo_min and secondValue.toInt() < servo_max)) {
-      pan = firstValue.toInt();
-      tilt = secondValue.toInt();
-      window_size = thirdValue.toInt();
-    }
-    SERIAL.flush();
-    Serial3.println(myString);
-    Serial3.println("Done");
-    if (myString != "") {
-      display.clearDisplay();
-      display.setCursor(0, 0);     // Start at top-left corner
-      display.println("Serial_Data = ");
-      display.println(myString);
-      display.display();
-    }
-  }
-
-
-
-
-
-
-
-  //BT Control
-  /*
-    Receive data from app and translate it to motor movements
-  */
-  // BT Module on Serial 3 (D14 & D15)
-  if (Serial3.available())
-  {
-    BT_Data = Serial3.read();
-    SERIAL.print(BT_Data);
-    Serial3.flush();
-    BT_alive_cnt = 100;
-    display.clearDisplay();
-    display.setCursor(0, 0);     // Start at top-left corner
-    display.println("BT_Data = ");
-    display.println(BT_Data);
-    display.display();
-  }
-
-  BT_alive_cnt = BT_alive_cnt - 1;
-  if (BT_alive_cnt <= 0) {
-    STOP();
-  }
-  switch (BT_Data)
-  {
-    case 'A':  ADVANCE();  M_LOG("Run!\r\n"); break;
-    case 'B':  RIGHT_2();  M_LOG("Right up!\r\n");     break;
-    case 'C':  rotate_1();                            break;
-    case 'D':  RIGHT_3();  M_LOG("Right down!\r\n");   break;
-    case 'E':  BACK(500, 500, 500, 500);     M_LOG("Run!\r\n");          break;
-    case 'F':  LEFT_3();   M_LOG("Left down!\r\n");    break;
-    case 'G':  rotate_2();                              break;
-    case 'H':  LEFT_2();   M_LOG("Left up!\r\n");     break;
-    case 'Z':  STOP();     M_LOG("Stop!\r\n");        break;
-    case 'z':  STOP();     M_LOG("Stop!\r\n");        break;
-    case 'd':  LEFT_2();   M_LOG("Left!\r\n");        break;
-    case 'b':  RIGHT_2();  M_LOG("Right!\r\n");        break;
-    case 'L':  Motor_PWM = 1500;                      break;
-    case 'M':  Motor_PWM = 500;                       break;
-  }
-}
-
-
 
 /*Voltage Readings transmitter
 Sends them via Serial3*/
@@ -315,15 +159,13 @@ void sendVolt(){
     oldV=newV;
 }
 
-
-
 void setup() {
   Serial.begin(9600);  // 初始化串口通信，波特率为9600
 }
 
 void loop() {
   // sendResponseToPython("aaa");
-  waitForPythonMessage();
+  // waitForPythonMessage();
 }
 
 void sendResponseToPython(String response) {
@@ -352,11 +194,18 @@ void processCommand(String command) {
   if (command =="1"){
     ADVANCE();
     }
-  if (command =="2"){
-    LEFT_1();
+  elif (command =="2"){
+    // go back    
     }
-  if (command =="3"){
-    RIGHT_1();
+  elif (command =="3"){
+    LEFT();
     }
+  elif (command =="3"){
+    RIGHT();
+    }
+   elif (command == "0"){
+    STOP();
+    }
+  }
   Serial.println("Processing command: " + command);
 }
