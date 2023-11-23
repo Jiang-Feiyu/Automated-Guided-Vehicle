@@ -26,6 +26,9 @@ int pos = 0;
 int MAX_VALUE = 2000;
 int MIN_VALUE = 300;
 
+// Define motoe rotate duration
+int movementDuration = 1000; // 1000 milliseconds (1 second)
+
 // Define motor pins
 #define PWMA 12    //Motor A PWM
 #define DIRA1 34
