@@ -53,9 +53,19 @@ def process_client_data():
     received_data = request.form.get('message')
     print("Received from client:", received_data)
     if received_data == "wake up":
-        send_msg("2")
+        send_msg("1")
     elif received_data == "stop":
         send_msg("0")
+    elif received_data == "1":
+        send_msg("1")
+    elif received_data == "2":
+        send_msg("2")
+    elif received_data == "3":
+        send_msg("3")
+    elif received_data == "4":
+        send_msg("4")
+    elif received_data == "5":
+        send_msg("5")
     response_to_client = "Message received by server"
     return response_to_client
 
