@@ -23,7 +23,7 @@ Here are some steps for reference: (suppose you already have `conda`)
 2.  Create a new environment (here is): 
     ```
     conda create -n py36tqrcode numpy pandas python=3.9
-    ```a
+    ```
     This command creates a new environment called `py36tqrcode` in the conda environment and installs the Python 3.9, NumPy, and Pandas packages in that environment.
 4.  Activate the environment: `conda activate py36tqrcode`
 5.  Deactive the environment: `conda deactivate`
