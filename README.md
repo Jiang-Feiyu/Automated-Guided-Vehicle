@@ -104,9 +104,9 @@ Here are some steps for reference: (suppose you already have `conda`)
             delay(10);
           }
           if (str.length() > 0) {
-              // 处理接收到的命令
+              // command that received
               processCommand(str);
-              // 发送响应回到Python
+              // send response to Python
               sendResponseToPython("Message received!");
             }
          }
