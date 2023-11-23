@@ -77,18 +77,26 @@ int MIN_VALUE = 300;
 #define MIN_PWM   300
 
 int Motor_PWM = 1900;
-int movementDuration = 1000;
+int movementDuration = 100;
 
 //    ↑A-----B↑
 //     |  ↑  |
 //     |  |  |
 //    ↑C-----D↑
-void BACK(uint8_t pwm_A, uint8_t pwm_B, uint8_t pwm_C, uint8_t pwm_D)
+void BACK()
 {
   MOTORA_BACKOFF(Motor_PWM); 
   MOTORB_FORWARD(Motor_PWM);
   MOTORC_BACKOFF(Motor_PWM); 
   MOTORD_FORWARD(Motor_PWM);
+
+  delay(movementDuration); // Pause for the specified duration
+
+  // Stop the motors after the specified duration
+   MOTORA_STOP(0); 
+   MOTORB_STOP(0);
+   MOTORC_STOP(0);
+   MOTORD_STOP(0);
 }
 
 //    ↓A-----B↓
@@ -105,10 +113,10 @@ void ADVANCE()
   delay(movementDuration); // Pause for the specified duration
 
   // Stop the motors after the specified duration
-  // MOTORA_STOP(0); 
-  // MOTORB_STOP(0);
-  // MOTORC_STOP(0);
-  // MOTORD_STOP(0);
+   MOTORA_STOP(0); 
+   MOTORB_STOP(0);
+   MOTORC_STOP(0);
+   MOTORD_STOP(0);
 }
 
 //    ↓A-----B↑
@@ -121,6 +129,14 @@ void RIGHT()
   MOTORB_FORWARD(Motor_PWM);
   MOTORC_BACKOFF(Motor_PWM); 
   MOTORD_BACKOFF(Motor_PWM);
+
+  delay(movementDuration); // Pause for the specified duration
+
+  // Stop the motors after the specified duration
+   MOTORA_STOP(0); 
+   MOTORB_STOP(0);
+   MOTORC_STOP(0);
+   MOTORD_STOP(0);
 }
 
 //    ↑A-----B↓
@@ -133,18 +149,14 @@ void LEFT()
   MOTORB_BACKOFF(Motor_PWM);
   MOTORC_FORWARD(Motor_PWM); 
   MOTORD_FORWARD(Motor_PWM);
-}
 
-//    ↑A-----B↓
-//     | ↗ ↘ |
-//     | ↖ ↙ |
-//    ↑C-----D↓
-void rotate()  //tate_1(uint8_t pwm_A,uint8_t pwm_B,uint8_t pwm_C,uint8_t pwm_D)
-{
-  MOTORA_BACKOFF(Motor_PWM); 
-  MOTORB_BACKOFF(Motor_PWM);
-  MOTORC_BACKOFF(Motor_PWM); 
-  MOTORD_BACKOFF(Motor_PWM);
+    delay(movementDuration); // Pause for the specified duration
+
+  // Stop the motors after the specified duration
+   MOTORA_STOP(0); 
+   MOTORB_STOP(0);
+   MOTORC_STOP(0);
+   MOTORD_STOP(0);
 }
 
 //    =A-----B=
@@ -157,6 +169,14 @@ void STOP()
   MOTORB_STOP(Motor_PWM);
   MOTORC_STOP(Motor_PWM);
   MOTORD_STOP(Motor_PWM);
+
+    delay(movementDuration); // Pause for the specified duration
+
+  // Stop the motors after the specified duration
+   MOTORA_STOP(0); 
+   MOTORB_STOP(0);
+   MOTORC_STOP(0);
+   MOTORD_STOP(0);
 }
 
 /*Voltage Readings transmitter
@@ -177,11 +197,9 @@ void setup() {
 }
 
 void loop() {
-  // sendResponseToPython("aaa");
-  // waitForPythonMessage();
-  ADVANCE();
-  ADVANCE();
-}
+  waitForPythonMessage();
+  delay(100);
+  }
 
 void sendResponseToPython(String response) {
   Serial.println(response);
@@ -208,19 +226,22 @@ void processCommand(String command) {
   // 在这里处理接收到的命令，可以根据需要执行相应的操作
   if (command =="1"){
     ADVANCE();
+    delay(100);
     }
-  elif (command =="2"){
-    // go back    
+  if (command =="2"){
+    BACK();
+    delay(100);
     }
-  elif (command =="3"){
+  if (command =="3"){
     LEFT();
+    delay(100);
     }
-  elif (command =="3"){
+  if (command =="4"){
     RIGHT();
+    delay(100);
     }
-   elif (command == "0"){
+   if (command == "0"){
     STOP();
+    delay(100);
     }
   }
-  Serial.println("Processing command: " + command);
-}
