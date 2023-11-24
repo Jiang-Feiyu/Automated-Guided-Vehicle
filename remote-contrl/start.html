@@ -9,7 +9,7 @@
         body {
             margin: 0;
             padding: 0;
-            background-image: url('1.avif'); /* Set the background image */
+            background-image: url('1.avif');
             background-size: cover;
             font-family: Arial, sans-serif;
             display: flex;
@@ -20,53 +20,99 @@
             color: white;
         }
 
-        /* Style for the buttons */
         button {
             padding: 10px 20px;
             font-size: 16px;
-            margin: 10px;
+            margin: 5px;
+            /* Adjusted margin for better spacing */
             cursor: pointer;
-            background-color: #4CAF50; /* Green background color */
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
         }
 
-        /* Hide the emergencyStopButton initially */
         #emergencyStopButton {
+            display: none;
+        }
+
+        #directionButtons {
+            display: flex;
+            margin-top: 10px;
+            /* Adjusted margin for better spacing */
+        }
+
+        /* Additional styles for the new buttons */
+        #frontButton,
+        #leftButton,
+        #rightButton,
+        #backButton {
             display: none;
         }
     </style>
 </head>
 
 <body>
-
     <h1>Unmanned Automatic Inspection System for Patrol of Suspicious Objects</h1>
 
     <button id="sendRequestButton">Start Patrol</button>
     <button id="emergencyStopButton">Emergency Stop</button>
 
+    <div id="directionButtons">
+        <!-- New Buttons -->
+        <button id="frontButton">Front</button>
+        <button id="leftButton">Left</button>
+        <button id="rightButton">Right</button>
+        <button id="backButton">Back</button>
+    </div>
+
     <script>
         document.getElementById("sendRequestButton").addEventListener("click", function () {
-            var serverAddress = 'http://192.168.50.69:8888';
+            var serverAddress = 'http://192.168.50.183:8888';
             var message_wak = 'wake up';
 
             fetchRequest(serverAddress, message_wak);
 
             document.getElementById("sendRequestButton").style.display = "none";
             document.getElementById("emergencyStopButton").style.display = "inline-block";
+            // Display the new buttons after starting patrol
+            document.getElementById("frontButton").style.display = "inline-block";
+            document.getElementById("leftButton").style.display = "inline-block";
+            document.getElementById("rightButton").style.display = "inline-block";
+            document.getElementById("backButton").style.display = "inline-block";
         });
 
         document.getElementById("emergencyStopButton").addEventListener("click", function () {
-            var serverAddress = 'http://192.168.50.69:8888';
+            var serverAddress = 'http://192.168.50.183:8888';
             var message_stp = 'stop';
 
             fetchRequest(serverAddress, message_stp);
         });
 
-        function fetchRequest(serverAddress, message) {
-            alert('send successfully');
+        // Event listeners for the new buttons
+        document.getElementById("frontButton").addEventListener("click", function () {
+            sendDirectionRequest("1");
+        });
 
+        document.getElementById("leftButton").addEventListener("click", function () {
+            sendDirectionRequest("3");
+        });
+
+        document.getElementById("rightButton").addEventListener("click", function () {
+            sendDirectionRequest("4");
+        });
+
+        document.getElementById("backButton").addEventListener("click", function () {
+            sendDirectionRequest("2");
+        });
+
+        function sendDirectionRequest(direction) {
+            var serverAddress = 'http://192.168.50.183:8888';
+
+            fetchRequest(serverAddress, direction);
+        }
+
+        function fetchRequest(serverAddress, message) {
             fetch(serverAddress, {
                 method: 'POST',
                 headers: {
