@@ -62,27 +62,46 @@ def navigate_to_point(center_x, center_y, yellow_x, yellow_y):
     # Calculate the differences in x and y coordinates
     dx = int(yellow_x) - int(center_x)
     dy = int(yellow_y) - int(center_y)
-
-    # Check whether to move up, down, left, or right
-    if abs(dx) <= tol and abs(dy) <= tol:
-        # Stop if the target is reached
+    # if yellow item not found
+    if int(yellow_x) == 0 or int(yellow_x) == 0:
         send_msg("0")
-    elif abs(dx) > abs(dy):
-        # Move left or right
-        if dx > 0:
-            # Move right
-            send_msg("4")
-        else:
-            # Move left
-            send_msg("3")
     else:
-        # Move up or down
-        if dy > 0:
-            # Move down
-            send_msg("2")
+        # Check whether to move up, down, left, or right
+        if abs(dx) <= tol and abs(dy) <= tol:
+            # Stop if the target is reached
+            send_msg("0")
         else:
-            # Move up
-            send_msg("1")
+            # only move y
+            if abs(dx) <= tol:
+                if dy < 0:
+                    # move back
+                    send_msg("2")
+                else:
+                    send_msg("1")
+            # only move x
+            elif abs(dy) <= tol:
+                if dx < 0:
+                    # move left
+                    send_msg("3")
+                else:
+                    send_msg("4")
+            # move x and y at same time
+            else:
+                if dx < 0:
+                    if dy < 0:
+                        send_msg("2")
+                        send_msg("3")
+                    else:
+                        send_msg("1")
+                        send_msg("3")
+                else:
+                    if dy < 0:
+                        send_msg("2")
+                        send_msg("4")
+                    else:
+                        send_msg("1")
+                        send_msg("4")
+                        
 
 # 数据处理
 def process_client_data():
@@ -98,6 +117,7 @@ def process_client_data():
         send_msg("1")
     elif received_data == "stop"  and status == 1:
         send_msg("0")
+        status = 0
     elif received_data == "1"  and status == 1:
         send_msg("1")
     elif received_data == "2"  and status == 1:
