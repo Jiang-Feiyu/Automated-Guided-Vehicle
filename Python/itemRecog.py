@@ -105,31 +105,35 @@ def http_send(server_address, message):
 
 
 def main():
+    # 在创建VideoCapture对象之前启用OpenCV的硬件加速
+    # cv2.ocl.setUseOpenCL(True)
+    # 选取摄像头
     cap = cv2.VideoCapture(0)
     server_address = 'http://192.168.50.183:8888'
+    detection_interval = 4  # Run detection every 10 frames
+
+    frame_count = 0
 
     while cap.isOpened():
         ret, frame = cap.read()
-
-        # 获取摄像头的帧宽度和帧高度
-        # frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        # frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        # print(frame_width)
-        # print(frame_height)
+        frame = cv2.resize(frame, (854, 480))
 
         if not ret:
             print("Failed to capture frame. Exiting...")
             break
 
-        center_x, center_y, yellow_x, yellow_y = detect_object(frame)
-        msg=str(center_x)+" "+str(center_y)+" "+str(yellow_x)+" "+str(yellow_y)
-        print("msg------->", msg)
-        http_send(server_address,msg)
+        frame_count += 1
+
+        if frame_count % detection_interval == 0:
+            center_x, center_y, yellow_x, yellow_y = detect_object(frame)
+            msg = str(center_x) + " " + str(center_y) + " " + str(yellow_x) + " " + str(yellow_y)
+            print("msg------->", msg)
+            http_send(server_address, msg)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        # Add a delay of 0.5 seconds
+        # Add a delay of 0.1 seconds
         time.sleep(0.1)
 
     cap.release()
