@@ -1,0 +1,15 @@
+.
+├── Arduino
+│   ├── move_control.ino
+│   └── required-func.ino
+├── LICENSE
+├── Python
+│   ├── itemRecog.py
+│   └── server.py
+├── README.md
+├── remote-contrl
+│   ├── 1.avif
+│   └── start.html
+└── tree.txt
+
+4 directories, 9 files
