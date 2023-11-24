@@ -3,6 +3,7 @@ import serial.tools.list_ports
 import time
 from flask import Flask, request
 
+status = 0 #标志是否启动
 app = Flask(__name__)
 
 # 查找串口号
@@ -57,7 +58,7 @@ def navigate_to_point(center_x, center_y, yellow_x, yellow_y):
     # 2 -> down 
     # 3 -> left 
     # 4 -> right 
-    tol = 100
+    tol = 50
     # Calculate the differences in x and y coordinates
     dx = int(yellow_x) - int(center_x)
     dy = int(yellow_y) - int(center_y)
@@ -85,6 +86,7 @@ def navigate_to_point(center_x, center_y, yellow_x, yellow_y):
 
 # 数据处理
 def process_client_data():
+    global status
     received_data = request.form.get('message')
     print("Received from client:", received_data)
     if received_data == "":
@@ -92,12 +94,22 @@ def process_client_data():
         response_to_client = "Message received by server"
         return response_to_client
     if received_data == "wake up":
+        status = 1
         send_msg("1")
-    elif received_data == "stop":
+    elif received_data == "stop"  and status == 1:
         send_msg("0")
+    elif received_data == "1"  and status == 1:
+        send_msg("1")
+    elif received_data == "2"  and status == 1:
+        send_msg("2")
+    elif received_data == "3"  and status == 1:
+        send_msg("3")
+    elif received_data == "4"  and status == 1:
+        send_msg("4")
     else:
-        center_x, center_y, yellow_x, yellow_y = received_data.split(" ")
-        navigate_to_point(center_x, center_y, yellow_x, yellow_y)
+        if status == 1:
+            center_x, center_y, yellow_x, yellow_y = received_data.split(" ")
+            navigate_to_point(center_x, center_y, yellow_x, yellow_y)
     response_to_client = "Message received by server"
     return response_to_client
 
