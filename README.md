@@ -140,6 +140,10 @@ def detect_object(frame):
             if frame_count % detection_interval == 0:
                 center_x, center_y, yellow_x, yellow_y = detect_object(frame)
        ```
+    - setting the image pixel
+       ```
+       frame = cv2.resize(frame, (854, 480))
+       ```
 ## Communication
 ### Serial communication [1]
 1. Raspverry Side
