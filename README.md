@@ -1,4 +1,3 @@
-
 # ELEC3848_gp
 ## Group E12
 <p align=center><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6d9e1938da4f4fa1a48c00fd7f5f4772~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2012&h=1170&s=445844&e=jpg&b=cac4b9" alt="IMG_5337.jpg" width="70%" /></p>
@@ -6,6 +5,22 @@
 <p align=center><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/de7117270da9458f993b2d50b933344e~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1170&h=629&s=377610&e=jpg&b=8b867e" alt="IMG_5339.jpg" width="70%" /></p>
 
 ## Overall
+### Document tree
+```
+.
+├── Arduino
+│   ├── move_control.ino
+│   └── required-func.ino
+├── LICENSE
+├── Python
+│   ├── itemRecog.py
+│   └── server.py
+├── README.md
+├── remote-contrl
+│   ├── 1.avif
+│   └── start.html
+└── tree.txt
+```
 ### Data flow of our project
 ```mermaid
 graph LR
