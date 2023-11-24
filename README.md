@@ -38,6 +38,108 @@ Here are some steps for reference: (suppose you already have `conda`)
     ```
     (py36tqrcode) ➜  desktop git:(main) ✗ /Users/Username/opt/anaconda3/envs/py36tqrcode/bin/python $DocumentName.py
     ```
+### Import the required libraries
+The code imports the necessary libraries for image processing, numerical computations, time operations, and sending HTTP requests. 
+```
+import cv2 
+import numpy as np 
+import time import requests
+```
+### Define the object detection function
+This function takes a frame (image) as input and performs object detection using color thresholds.
+def detect_object(frame):
+1. Convert the frame to the HSV color space, creates masks based on pre-defined red and yellow thresholds:
+    ```
+    # Convert BGR to HSV
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # Define the range of red color in HSV
+    lower_red = np.array([0, 100, 100])
+    upper_red = np.array([10, 255, 255])
+
+    # Define the range of yellow color in HSV
+    lower_yellow = np.array([20, 100, 100])
+    upper_yellow = np.array([30, 255, 255])
+
+    # Threshold the HSV image to get only red colors
+    red_mask = cv2.inRange(hsv, lower_red, upper_red)
+
+    # Threshold the HSV image to get only yellow colors
+    yellow_mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    ```
+2. Find the largest contours in each mask:
+    ```
+    # Process red contours
+    for contour in red_contours:
+        area = cv2.contourArea(contour)
+        if area > 100:
+            if area > largest_red_area:
+                largest_red_area = area
+                largest_red_contour = contour
+
+    # Process yellow contours
+    for contour in yellow_contours:
+        area = cv2.contourArea(contour)
+        if area > 100:
+            if area > largest_yellow_area:
+                largest_yellow_area = area
+                largest_yellow_contour = contour
+    ```
+3. Draw bounding boxes around the objects, calculate the center coordinates of the objects, and print them:
+    ```
+    # Draw rectangle around the largest red object
+    if largest_red_contour is not None:
+        x, y, w, h = cv2.boundingRect(largest_red_contour)
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        # Calculate the center of the rectangle
+        red_center_x = x + w // 2
+        red_center_y = frame.shape[0] - (y + h // 2)  # Invert y coordinate
+
+        print("Red coordinates:", red_center_x, red_center_y)
+    else:
+        red_center_x, red_center_y = 0, 0
+
+    # Draw rectangle around the largest yellow object
+    if largest_yellow_contour is not None:
+        x, y, w, h = cv2.boundingRect(largest_yellow_contour)
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
+
+        # Calculate the center of the rectangle
+        yellow_center_x = x + w // 2
+        yellow_center_y = frame.shape[0] - (y + h // 2)  # Invert y coordinate
+
+        print("Yellow coordinates:", yellow_center_x, yellow_center_y)
+    else:
+        yellow_center_x, yellow_center_y = 0, 0
+    ```
+4. Send the coordinate through http request
+    ```
+    response_post = requests.post(server_address, data={'message': message})
+    ```
+    Check if the request was successful (status code 200)
+    ```
+    if response_post.status_code == 200: 
+        print("Server Response:") 
+        print(response_post.text) 
+    else: 
+        print(f"Error: Server returned status code {response_post.status_code}")
+    ```
+5. Optimizer
+   - detection_interval setting:
+       ```
+       detection_interval = n  # Run detection every 10 frames
+
+        frame_count = 0
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+
+            frame_count += 1
+
+            if frame_count % detection_interval == 0:
+                center_x, center_y, yellow_x, yellow_y = detect_object(frame)
+       ```
 ## Communication
 ### Serial communication [1]
 1. Raspverry Side
@@ -213,5 +315,4 @@ fetch(serverAddress, {
 The request will be sent as the click-button event is triggered.
 
 [1]:https://codeantenna.com/a/2OhcDHzc2B 
-
 
