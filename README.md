@@ -8,17 +8,25 @@
 ### Document tree
 ```
 .
-├── Arduino
-│   ├── move_control.ino
-│   └── required-func.ino
 ├── LICENSE
-├── Python
-│   ├── itemRecog.py
-│   └── server.py
 ├── README.md
-├── remote-contrl
-│   ├── 1.avif
-│   └── start.html
+├── documents
+│   ├── Proposal.pdf
+│   ├── project description.pdf
+│   └── required-function.pdf
+├── innovative-function
+│   ├── Arduino
+│   │   └── move_control.ino
+│   ├── Python
+│   │   ├── itemRecog.py
+│   │   └── server.py
+│   └── remote-contrl
+│       ├── 1.avif
+│       └── start.html
+├── required-function
+│   ├── Car_Volt_Feedback.ino
+│   ├── car.apk
+│   └── gp-light.ino
 └── tree.txt
 ```
 ### Data flow of our project
